@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.NA_STATIC=true</script>
+<title>Net Atlası · Öğrenci girişi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sabit sol kenar çubuğu + geniş çalışma alanı; telefonda üst çubuk + çekmece. Topografik atlas çizgileri yalnızca markada. */
+:root{
+  --bg:#f3f5f4; --panel:#ffffff; --sunk:#eaeeec; --line:#dbe2df; --line-2:#c7d1cd;
+  --fg:#16211e; --muted:#5d6b66; --faint:#8b9894;
+  --ink:#16443a; --ink-fg:#ffffff; --ink-soft:#e1ece8; --ink-text:#1d5a4c;
+  --gold:#b07a12; --gold-soft:#f6ecd6;
+  --up:#1f7a4d; --up-soft:#e2f2e9; --down:#b4442c; --down-soft:#f8e5df;
+  --c-tr:#2f6fb5; --c-mat:#7b55c4; --c-sos:#c47a1f; --c-fen:#2b9a74; --c-ink:#c2453a; --c-din:#8a6a3c; --c-ing:#c24b8f; --c-total:#16443a;
+  --shadow:0 1px 2px rgba(22,33,30,.05),0 6px 24px -12px rgba(22,33,30,.18);
+  --f-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --panel:#161e1b; --sunk:#1c2622; --line:#26322e; --line-2:#33423d;
+  --fg:#e6eeeb; --muted:#9aaba5; --faint:#6d7d77;
+  --ink:#5fc2a5; --ink-fg:#08130f; --ink-soft:#1c332c; --ink-text:#8fd8c2;
+  --gold:#e3b04f; --gold-soft:#3a2f17;
+  --up:#5cc88f; --up-soft:#173225; --down:#ee8a72; --down-soft:#3a1f19;
+  --c-tr:#6fa8ea; --c-mat:#ad8cf0; --c-sos:#e7a456; --c-fen:#57c9a0; --c-ink:#ef7d70; --c-din:#c6a173; --c-ing:#ec84bd; --c-total:#7fd8bd;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --panel:#161e1b; --sunk:#1c2622; --line:#26322e; --line-2:#33423d;
+  --fg:#e6eeeb; --muted:#9aaba5; --faint:#6d7d77;
+  --ink:#5fc2a5; --ink-fg:#08130f; --ink-soft:#1c332c; --ink-text:#8fd8c2;
+  --gold:#e3b04f; --gold-soft:#3a2f17;
+  --up:#5cc88f; --up-soft:#173225; --down:#ee8a72; --down-soft:#3a1f19;
+  --c-tr:#6fa8ea; --c-mat:#ad8cf0; --c-sos:#e7a456; --c-fen:#57c9a0; --c-ink:#ef7d70; --c-din:#c6a173; --c-ing:#ec84bd; --c-total:#7fd8bd;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono)}
+.app{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:100%}
+/* sidebar */
+.side{position:sticky;top:0;height:100vh;height:100dvh;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 14px 14px max(14px,env(safe-area-inset-left,0px));gap:18px;overflow-y:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:0 6px}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:var(--ink);display:grid;place-items:center;flex:none}
+.brand-mark svg{width:26px;height:26px}
+.brand b{font-family:var(--f-display);font-size:21px;letter-spacing:-.02em;display:block;line-height:1}
+.brand small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;padding:0 8px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;border:0;background:none;padding:9px 10px;border-radius:9px;text-align:left;color:var(--muted);font-weight:500}
+.nav button:hover{background:var(--sunk);color:var(--fg)}
+.nav button[aria-current="true"]{background:var(--ink-soft);color:var(--ink-text);font-weight:600}
+.nav .count{margin-left:auto;font-size:12px;background:var(--sunk);padding:1px 7px;border-radius:99px;color:var(--muted)}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.side-head{display:flex;align-items:center;justify-content:space-between}
+.icon-btn{border:0;background:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--muted)}
+.icon-btn:hover{background:var(--sunk);color:var(--fg)}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;padding:6px 9px;background:var(--bg)}
+.search input{border:0;background:none;outline:0;width:100%;font-size:13.5px;min-width:0}
+.slist{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:60px;flex:1}
+.sitem{display:flex;gap:10px;align-items:center;border:0;background:none;padding:7px 8px;border-radius:9px;text-align:left;width:100%}
+.sitem:hover{background:var(--sunk)}
+.sitem[aria-current="true"]{background:var(--sunk);box-shadow:inset 2px 0 0 var(--ink)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--ink-soft);color:var(--ink-text);display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.sitem .meta{min-width:0}
+.sitem .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sitem .sub{font-size:12px;color:var(--muted)}
+.side-foot{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.savenote{display:flex;gap:9px;align-items:flex-start;background:var(--sunk);border-radius:10px;padding:10px;font-size:12.5px;color:var(--muted)}
+.savenote b{color:var(--fg);font-weight:600;display:block}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none;margin-top:6px}
+.dot.ok{background:var(--up)} .dot.warn{background:var(--gold)}
+/* main */
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding-block:12px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.crumb{font-size:13.5px;color:var(--muted);display:flex;gap:8px;align-items:center;min-width:0}
+.crumb b{color:var(--fg);font-weight:600}
+.top .spacer{flex:1}
+.today{font-size:13px;color:var(--muted)}
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:6px;min-width:250px;z-index:20;display:flex;flex-direction:column}
+.menu button,.menu label{display:flex;gap:10px;align-items:center;border:0;background:none;padding:9px 10px;border-radius:8px;text-align:left;font-size:14px;cursor:pointer}
+.menu button:hover,.menu label:hover{background:var(--sunk)}
+.menu small{display:block;color:var(--muted);font-size:12px}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
+.content{padding-block:26px 48px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px;max-width:1320px;width:100%}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.2vw,34px);letter-spacing:-.025em;margin:2px 0 4px;line-height:1.1;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:19px;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.lede{color:var(--muted);margin:0}
+.head-row{display:flex;align-items:flex-end;gap:16px;justify-content:space-between;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-2);background:var(--panel);padding:8px 14px;border-radius:10px;font-weight:600;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:var(--ink);color:var(--ink-text)}
+.btn.primary{background:var(--ink);color:var(--ink-fg);border-color:var(--ink);padding:10px 18px}
+.btn.primary:hover{filter:brightness(1.08);color:var(--ink-fg)}
+.btn.quiet{border-color:transparent;background:none;color:var(--muted)}
+.btn.quiet:hover{color:var(--ink-text);background:var(--sunk)}
+.btn.danger{color:var(--down);border-color:color-mix(in srgb,var(--down) 40%,transparent)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.seg{display:inline-flex;background:var(--sunk);border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:7px 16px;border-radius:8px;font-weight:600;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink-text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg.sm button{padding:4px 10px;font-size:12.5px}
+.typebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.typebar .hint{font-size:13px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.pad{padding:18px 20px}
+.student-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.student-bar .av{width:46px;height:46px;font-size:17px}
+.student-bar .who{min-width:0;flex:1}
+.student-bar .who .n{font-family:var(--f-display);font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px}
+.student-bar .who .s{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.linkish{border:0;background:none;padding:0;color:var(--ink-text);font-size:13px;text-decoration:underline dotted;text-underline-offset:3px}
+.pick{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--panel);font-size:14px;max-width:200px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.kpi{padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.kpi .k{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.05}
+.kpi .v small{font-family:var(--f-body);font-size:13px;color:var(--faint);font-weight:500;margin-left:4px;letter-spacing:0}
+.kpi .f{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:20px}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:600;padding:1px 7px;border-radius:6px;white-space:nowrap}
+.chip.up{background:var(--up-soft);color:var(--up)} .chip.down{background:var(--down-soft);color:var(--down)} .chip.flat{background:var(--sunk);color:var(--muted)}
+.chip.gold{background:var(--gold-soft);color:var(--gold)}
+.kico{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--sunk);color:var(--muted)}
+.meter{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden;margin-top:2px}
+.meter i{display:block;height:100%;background:var(--ink);border-radius:99px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:14px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.card-h p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 6px}
+.legend button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:none;border-radius:99px;padding:3px 10px;font-size:12.5px;color:var(--muted)}
+.legend button[aria-pressed="true"]{background:var(--sunk);color:var(--fg);border-color:var(--line-2)}
+.legend i{width:8px;height:8px;border-radius:50%;display:block}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--faint);font-family:var(--f-mono);font-size:11px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:12.5px;min-width:170px;transform:translate(-50%,calc(-100% - 12px));z-index:4}
+.tip b{display:block;font-size:13.5px}
+.tip .r{display:flex;justify-content:space-between;gap:14px}
+.tip .r span:first-child{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.foot-note{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:8px}
+.subjects{display:flex;flex-direction:column}
+.subj{display:grid;grid-template-columns:38px minmax(0,1fr) 80px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.subj:last-child{border-bottom:0}
+.tag{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.04em}
+.subj .nm{font-weight:600;font-size:14px}
+.subj .av2{font-size:13px;color:var(--muted)}
+.subj .av2 b{font-family:var(--f-display);font-size:17px;color:var(--fg);margin-right:4px}
+.subj .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+/* table */
+.tbl-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tbl-wrap{overflow-x:auto;margin:14px -20px -18px;border-top:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:10px 14px;background:var(--sunk);white-space:nowrap;vertical-align:bottom}
+th:first-child,td:first-child{text-align:left;padding-left:20px}
+th small{display:block;font-weight:400;color:var(--faint);font-size:11px}
+th .sw{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+td{padding:11px 14px;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+tbody tr:hover td{background:color-mix(in srgb,var(--sunk) 55%,transparent)}
+td.tot,th.tot{background:color-mix(in srgb,var(--ink-soft) 60%,transparent);font-weight:700;color:var(--ink-text)}
+td.ex{display:flex;gap:12px;align-items:center;min-width:220px}
+.idx{font-family:var(--f-mono);font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:2px 5px}
+.ex .nm{font-weight:600;white-space:normal}
+.ex .dt{font-size:12.5px;color:var(--muted)}
+.dyn{display:inline-grid;grid-template-columns:auto auto auto;gap:0 8px;font-size:12.5px;text-align:right}
+.dyn .d{color:var(--up)} .dyn .y{color:var(--down)} .dyn .n{font-weight:700}
+.dyn .h{font-size:10px;color:var(--faint)}
+.subcell{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.subcell .sl{font-size:10.5px;color:var(--faint)}
+.acts{display:flex;gap:2px;justify-content:flex-end}
+tfoot td{background:var(--sunk);font-weight:700;font-size:13px}
+.ovr{font-size:10px;color:var(--gold);margin-left:3px;vertical-align:super}
+.tbl-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);margin:0 -20px -18px}
+.empty{padding:44px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty h3{margin:0;font-family:var(--f-display);color:var(--fg);font-size:18px}
+/* students page */
+.scards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.scard{padding:18px;display:flex;flex-direction:column;gap:12px}
+.scard .top2{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.scard .av{width:42px;height:42px;font-size:15px}
+.scard .n{font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.2}
+.scard .lv{font-size:12.5px;color:var(--muted)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats3 span{font-size:11.5px;color:var(--muted);display:block}
+.stats3 b{font-family:var(--f-display);font-size:20px;font-weight:700}
+.scard .go{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px;font-size:13px;color:var(--ink-text);font-weight:600;background:none;border-left:0;border-right:0;border-bottom:0;width:100%}
+.scard.add{border-style:dashed;background:none;align-items:center;justify-content:center;text-align:center;color:var(--muted);min-height:200px}
+.spark{display:block}
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,18,15,.45);z-index:50;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal{background:var(--panel);border-radius:16px;box-shadow:var(--shadow);width:min(860px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+.modal.small{width:min(460px,100%)}
+.m-h{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 24px 14px;border-bottom:1px solid var(--line);gap:12px}
+.m-h h2{font-size:20px}
+.m-h p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.m-b{padding:18px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.m-f{display:flex;align-items:center;gap:10px;padding:14px 24px;border-top:1px solid var(--line);background:var(--sunk);flex-wrap:wrap}
+.m-f .sum{margin-right:auto;font-size:13px;color:var(--muted)}
+.m-f .sum b{font-family:var(--f-display);font-size:22px;color:var(--fg);margin-right:4px}
+.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label{font-size:13px;font-weight:600}
+.fld label small{font-weight:400;color:var(--faint);margin-left:4px}
+.fld input,.fld select,.fld textarea{border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;background:var(--panel);width:100%;min-width:0}
+.fld textarea{min-height:70px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid var(--ink);outline-offset:-1px;border-color:transparent}
+.notice{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--gold-soft);color:color-mix(in srgb,var(--gold) 70%,var(--fg));border-radius:10px;padding:9px 12px;font-size:13px}
+.secs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sec{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sec-h{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--sunk);font-weight:700;font-size:14px;gap:8px}
+.sec-h .nt{font-size:13px;font-weight:600;color:var(--muted)}
+.sec-h i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) 62px 62px 52px;gap:8px;align-items:center;padding:6px 12px;font-size:13.5px}
+.srow.h{font-size:11px;color:var(--faint);padding-top:8px;padding-bottom:0}
+.srow input{width:100%;border:1px solid var(--line-2);border-radius:8px;padding:6px 6px;text-align:center;background:var(--panel);font-variant-numeric:tabular-nums;min-width:0}
+.srow input.bad{border-color:var(--down);background:var(--down-soft)}
+.srow .nn{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.srow small{color:var(--faint);font-size:11px;margin-left:4px}
+.ovr-row{display:flex;align-items:center;gap:8px;padding:6px 12px 10px;font-size:12px;color:var(--muted);border-top:1px dashed var(--line)}
+.ovr-row input{width:76px;border:1px solid var(--line-2);border-radius:8px;padding:4px 6px;text-align:center;background:var(--panel);min-width:0}
+.err{color:var(--down);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;box-shadow:var(--shadow)}
+.help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.mtop{display:none}
+.confirm-inline{display:inline-flex;gap:4px;align-items:center}
+@media (max-width:1080px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;left:0;top:0;bottom:0;width:min(290px,86vw);z-index:40;transform:translateX(-102%);transition:transform .2s;padding-top:max(20px,env(safe-area-inset-top,0px))}
+  .side.open{transform:none;box-shadow:var(--shadow)}
+  .mtop{display:grid}
+  .secs,.fields{grid-template-columns:minmax(0,1fr)}
+  .today{display:none}
+}
+@media (max-width:520px){
+  .top,.content{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .kpi .v{font-size:28px}
+  .tbl-wrap,.tbl-foot{margin-left:-16px;margin-right:-16px}
+  .pad{padding:16px}
+  .m-h,.m-b,.m-f{padding-left:16px;padding-right:16px}
+  .btn.primary .lbl{display:none}
+}
+.ro .teach{display:none!important}
+.ro-only{display:none!important}
+.static-only{display:none!important}
+.static .static-only{display:inline-flex!important}
+.cred-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.cred-row .who2{font-weight:600}
+.cred-row code{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.login{max-width:420px;margin:48px auto;display:flex;flex-direction:column;gap:14px}
+.ro .ro-only{display:inline-flex!important}
+.codebox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--sunk);border:1px dashed var(--line-2);border-radius:10px;padding:12px 14px}
+.codebox code{font-family:var(--f-mono);font-size:15px;word-break:break-all;flex:1;min-width:0;user-select:all}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--sunk);color:var(--muted)}
+.badge.on{background:var(--up-soft);color:var(--up)}
+.portal-wait{max-width:560px;margin:40px auto;display:flex;flex-direction:column;gap:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head><body>
+<div class="app" id="app">
+  <aside class="side" id="side" aria-label="Kenar çubuğu">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 26 26" fill="none" stroke="var(--ink-fg)" stroke-width="1.6" stroke-linecap="round"><path d="M3 19c3-1 4-5 7-5s4 3 7 2 4-6 6-7" /><path d="M3 14c2-.5 3-3 5-3" opacity=".55"/><path d="M14 9c1.5-.4 2.5-2 4-2.5" opacity=".55"/><circle cx="23" cy="9" r="1.6" fill="var(--ink-fg)" stroke="none"/></svg>
+      </div>
+      <div><b>net atlası</b><small>öğrenci gelişim alanı</small></div>
+    </div>
+    <div class="label teach">Çalışma alanım</div>
+    <nav class="nav teach" id="nav">
+      <button data-view="overview"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Genel bakış</button>
+      <button data-view="students"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.8 3 2.6 3.5 5.2"/></svg>Öğrenciler<span class="count num" id="navCount">0</span></button>
+      <button data-view="table"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Deneme tablosu</button>
+    </nav>
+    <div class="side-head teach"><div class="label">Öğrencilerim</div><button class="icon-btn" id="addStudentSide" aria-label="Öğrenci ekle"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <label class="search teach" for="sq"><svg class="ico" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><input id="sq" placeholder="Öğrenci ara…" autocomplete="off"></label>
+    <div class="slist teach" id="slist"></div>
+    <div class="side-foot">
+      <div class="savenote"><span class="dot" id="saveDot"></span><div><b id="saveTitle">Bağlanıyor…</b><span id="saveText">Kayıtlar yükleniyor.</span></div></div>
+      <button class="btn quiet sm teach" id="helpBtn" style="justify-content:space-between"><span>Nasıl kullanılır?</span><span aria-hidden="true">›</span></button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <button class="icon-btn mtop" id="menuBtn" aria-label="Menüyü aç"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div class="crumb"><span>Çalışma alanım</span><span aria-hidden="true">›</span><b id="crumb">Genel bakış</b></div>
+      <div class="spacer"></div>
+      <span class="today num" id="today"></span>
+      <button class="btn quiet sm static-only" data-act="logout">Çıkış yap</button>
+      <div class="menu-wrap">
+        <button class="btn quiet sm" id="dataBtn" aria-haspopup="true" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Veri ve Excel</button>
+        <div class="menu" id="dataMenu" hidden>
+          <button data-act="xlsx" class="teach"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg><span>Excel olarak indir<small>Tüm öğrenciler, sınav türüne göre sayfalar</small></span></button>
+          <button data-act="csv"><svg class="ico" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 13h7M9 17h7"/></svg><span>Bu tabloyu CSV indir<small>Seçili öğrenci ve sınav türü</small></span></button>
+          <button data-act="github" class="teach"><svg class="ico" viewBox="0 0 24 24"><path d="M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg><span>GitHub öğrenci sitesine aktar<small>Şifreli sonuç dosyası ve giriş bilgileri</small></span></button>
+          <hr class="teach">
+          <button data-act="backup" class="teach"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg><span>Yedek indir (.json)<small>Bütün kayıtların kopyası</small></span></button>
+          <label for="restoreFile" class="teach"><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg><span>Yedekten geri yükle<small>Aynı kayıtlar güncellenir, yeniler eklenir</small></span></label>
+          <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+"use strict";
+/* ---------- sınav şablonları ---------- */
+const TYPES={
+  TYT:{label:"TYT",div:4,secs:[
+    {key:"turkce",name:"Türkçe",tag:"TR",color:"--c-tr",subs:[{key:"turkce",name:"Türkçe",max:40}]},
+    {key:"matematik",name:"Matematik",tag:"MAT",color:"--c-mat",subs:[{key:"matematik",name:"Matematik",max:30},{key:"geometri",name:"Geometri",max:10}]},
+    {key:"sosyal",name:"Sosyal",tag:"SOS",color:"--c-sos",subs:[{key:"inkilap",name:"Tarih",max:5},{key:"cografya",name:"Coğrafya",max:5},{key:"felsefe",name:"Felsefe",max:5},{key:"din",name:"Din Kültürü",max:5}]},
+    {key:"fen",name:"Fen",tag:"FEN",color:"--c-fen",subs:[{key:"fizik",name:"Fizik",max:7},{key:"kimya",name:"Kimya",max:7},{key:"biyoloji",name:"Biyoloji",max:6}]}]},
+  LGS:{label:"LGS",div:3,secs:[
+    {key:"turkce",name:"Türkçe",tag:"TR",color:"--c-tr",subs:[{key:"lgs_turkce",name:"Türkçe",max:20}]},
+    {key:"matematik",name:"Matematik",tag:"MAT",color:"--c-mat",subs:[{key:"lgs_matematik",name:"Matematik",max:20}]},
+    {key:"fen",name:"Fen Bilimleri",tag:"FEN",color:"--c-fen",subs:[{key:"lgs_fen",name:"Fen Bilimleri",max:20}]},
+    {key:"inkilap",name:"İnkılap Tarihi",tag:"İNK",color:"--c-ink",subs:[{key:"lgs_inkilap",name:"T.C. İnkılap Tarihi",max:10}]},
+    {key:"din",name:"Din Kültürü",tag:"DİN",color:"--c-din",subs:[{key:"lgs_din",name:"Din Kültürü",max:10}]},
+    {key:"ingilizce",name:"İngilizce",tag:"İNG",color:"--c-ing",subs:[{key:"lgs_ingilizce",name:"İngilizce",max:10}]}]},
+  AYT:{label:"AYT",div:4,secs:[
+    {key:"matematik",name:"Matematik",tag:"MAT",color:"--c-mat",subs:[{key:"ayt_mat",name:"Matematik",max:40}]},
+    {key:"edsos1",name:"Edebiyat–Sos. 1",tag:"EDB",color:"--c-tr",subs:[{key:"edebiyat",name:"Edebiyat",max:24},{key:"tarih1",name:"Tarih-1",max:10},{key:"cografya1",name:"Coğrafya-1",max:6}]},
+    {key:"sos2",name:"Sosyal-2",tag:"SS2",color:"--c-sos",subs:[{key:"tarih2",name:"Tarih-2",max:11},{key:"cografya2",name:"Coğrafya-2",max:11},{key:"ayt_felsefe",name:"Felsefe Grubu",max:12},{key:"ayt_din",name:"Din Kültürü",max:6}]},
+    {key:"fen",name:"Fen",tag:"FEN",color:"--c-fen",subs:[{key:"ayt_fizik",name:"Fizik",max:14},{key:"ayt_kimya",name:"Kimya",max:13},{key:"ayt_biyoloji",name:"Biyoloji",max:13}]}]}
+};
+const DIV_LABEL={4:"4 yanlış → 1 doğru",3:"3 yanlış → 1 doğru",0:"Yanlış etkilemez"};
+const TRACKS={YKS:{label:"YKS (TYT + AYT)",types:["TYT","AYT"]},LGS:{label:"LGS",types:["LGS"]}};
+const trackOf=s=>TRACKS[s?.track]?s.track:"YKS";
+const typesOf=s=>TRACKS[trackOf(s)].types;
+function fitType(s){const ts=typesOf(s);if(ts.includes(UI.type))return;const pt=s?primaryType(s.id):null;UI.type=ts.includes(pt)?pt:ts[0]}
+
+/* ---------- yardımcılar ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const r2=n=>Math.round(n*100)/100;
+const fmt=n=>n==null||isNaN(n)?"—":r2(n).toLocaleString("tr-TR",{maximumFractionDigits:2});
+const signed=n=>(n>0?"+":"")+fmt(n);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const initials=n=>(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toLocaleUpperCase("tr-TR");
+const MONTHS=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+const fdate=d=>{if(!d)return "Tarih yok";const [y,m,dd]=d.split("-").map(Number);return `${dd} ${MONTHS[m-1]} ${y}`};
+const isoToday=()=>{const t=new Date();return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`};
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const isNum=v=>v!==null&&v!==undefined&&v!==""&&!isNaN(+v);
+
+function subNet(r,div){if(!r||(!isNum(r.c)&&!isNum(r.w)))return null;const c=+r.c||0,w=+r.w||0;return c-(div?w/div:0)}
+function secNet(ex,sec){const o=ex.overrides?.[sec.key];if(isNum(o))return +o;let any=false,s=0;for(const sb of sec.subs){const n=subNet(ex.results?.[sb.key],ex.divisor);if(n!=null){any=true;s+=n}}return any?s:null}
+function secCW(ex,sec){let c=null,w=null;for(const sb of sec.subs){const r=ex.results?.[sb.key];if(r&&isNum(r.c))c=(c||0)+ +r.c;if(r&&isNum(r.w))w=(w||0)+ +r.w}return{c,w}}
+function overLimit(ex){const t=TYPES[ex.type];if(!t)return "";const out=[];for(const sc of t.secs)for(const sb of sc.subs){const r=ex.results?.[sb.key];if(r&&(+r.c||0)+(+r.w||0)>sb.max)out.push(`${sb.name} ${(+r.c||0)+(+r.w||0)}/${sb.max}`)}return out.join(", ")}
+function totalNet(ex){const t=TYPES[ex.type]||TYPES.TYT;let any=false,s=0;for(const sec of t.secs){const n=secNet(ex,sec);if(n!=null){any=true;s+=n}}return any?s:null}
+function missingSubs(ex){const t=TYPES[ex.type]||TYPES.TYT;return t.secs.some(sec=>!isNum(ex.overrides?.[sec.key])&&sec.subs.some(sb=>{const r=ex.results?.[sb.key];return !r||!isNum(r.c)||!isNum(r.w)}))}
+function sortExams(list,mode){const a=[...list];const key=e=>e.date||"9999";
+  if(mode==="added")a.sort((x,y)=>(x.createdAt||0)-(y.createdAt||0));
+  else{a.sort((x,y)=>key(x).localeCompare(key(y))||(x.createdAt||0)-(y.createdAt||0));if(mode==="desc"){const dated=a.filter(e=>e.date).reverse();a.splice(0,a.length,...dated,...a.filter(e=>!e.date))}}
+  return a}
+function chrono(list){return sortExams(list,"asc")}
+
+/* ---------- durum ---------- */
+const S={students:new Map(),exams:new Map(),ready:false,mode:"loading"};
+const UI={view:ls.get("na-view","overview"),sid:ls.get("na-sid",null),type:ls.get("na-type","TYT"),sort:ls.get("na-sort","asc"),dyn:false,q:"",sq:"",series:{total:true},tq:"",tStudent:"all",tType:ls.get("na-ttype","TYT"),confirm:null,menu:null};
+let db=null,dl=null,user=null,ROLE="teacher",ME=null,WHO="Öğrenci";
+const PORTAL=new Map();let portalLoaded=false,syncT=null;
+
+/* ---------- depo ---------- */
+const LOCAL="na-local-v1";
+function localLoad(){const d=ls.get(LOCAL,{students:{},exams:{}});S.students=new Map(Object.entries(d.students));S.exams=new Map(Object.entries(d.exams))}
+function localSave(){ls.set(LOCAL,{students:Object.fromEntries(S.students),exams:Object.fromEntries(S.exams)})}
+async function put(coll,id,data){
+  const m=coll==="students"?S.students:S.exams;m.set(id,{...data,id});render();
+  if(db){try{const body={...data};delete body.id;await db.collection(coll).doc(id).set(body)}catch(e){handleWriteErr(e);throw e}}
+  else localSave()}
+async function del(coll,id){
+  (coll==="students"?S.students:S.exams).delete(id);render();
+  if(db){try{await db.collection(coll).doc(id).delete()}catch(e){handleWriteErr(e);throw e}}else localSave()}
+function handleWriteErr(e){toast(e?.code==="quota_exceeded"?"Kayıt alanı doldu. Eski denemeleri silip yeniden dene.":e?.code==="invalid_argument"?"Bu sayfada değişiklik yapma iznin yok.":"Kaydedilemedi. Bağlantını kontrol edip tekrar dene.")}
+function setSave(state){
+  const d=$("#saveDot"),t=$("#saveTitle"),x=$("#saveText");
+  d.className="dot"+(state==="ok"?" ok":state==="warn"||state==="local"?" warn":"");
+  if(state==="ok"){t.textContent="Gelişim kaybolmasın.";x.textContent="Kayıtlar hesabında saklanır."}
+  else if(state==="local"){t.textContent="Yalnızca bu tarayıcıda";x.textContent="Kalıcı kayıt alanına ulaşılamadı; yedek indirmeyi unutma."}
+  else if(state==="warn"){t.textContent="Bağlantı yavaş";x.textContent="Kayıtlar henüz gelmedi; gösterilen veri eski olabilir."}
+  else{t.textContent="Bağlanıyor…";x.textContent="Kayıtlar yükleniyor."}}
+async function boot(){
+  if(window.NA_STATIC)return bootStatic();
+  render();
+  try{db=window.claude?.use?await window.claude.use("db"):null}catch{db=null}
+  try{dl=window.claude?.use?await window.claude.use("downloads"):null}catch{dl=null}
+  try{user=window.claude?.use?await window.claude.use("user"):null}catch{user=null}
+  if(user){let ed=false;try{ed=await user.canEdit()}catch{}if(!ed){ROLE="student";try{ME=await user.id()}catch{ME=null}}}
+  if(ROLE==="student")return bootStudent();
+  if(!db){localLoad();S.ready=true;S.mode="local";setSave("local");render();return}
+  db.collection("portal").onSnapshot(snap=>{PORTAL.clear();snap.docs.forEach(d=>PORTAL.set(d.id,d.data()));if(!snap.metadata.fromCache)portalLoaded=true;scheduleSync()},()=>{});
+  let got={students:false,exams:false};
+  const timer=setTimeout(()=>{if(!(got.students&&got.exams))setSave("warn")},10000);
+  const sub=(coll,map)=>db.collection(coll).onSnapshot(snap=>{
+      map.clear();snap.docs.forEach(d=>map.set(d.id,{...d.data(),id:d.id}));
+      if(!snap.metadata.fromCache)got[coll]=true;
+      if(got.students&&got.exams){clearTimeout(timer);S.ready=true;S.mode="db";setSave("ok");scheduleSync()}
+      else if(map.size)S.ready=true;
+      render()},
+    err=>{clearTimeout(timer);S.ready=true;setSave("warn");toast("Kayıtlara ulaşılamadı.");render()});
+  sub("students",S.students);sub("exams",S.exams)}
+
+/* ---------- öğrenci erişimi ---------- */
+const CODE_RE=/^[A-Za-z0-9_\-.~:@+]{4,200}$/;
+function codesOf(s){const a=Array.isArray(s?.access)?s.access.filter(x=>x&&CODE_RE.test(x.code)):[];if(s?.portalId&&CODE_RE.test(s.portalId)&&!a.some(x=>x.code===s.portalId))a.unshift({code:s.portalId,who:"Öğrenci"});return a}
+function portalPayload(s,who){const {id,name,level,track,targets}=s;
+  const exams=examsOf(s.id).sort((a,b)=>a.id.localeCompare(b.id)).map(e=>{const {studentId,...rest}=e;return rest});
+  return {who,student:{id,name,level:level||"",track:trackOf(s),targets:targets||{}},exams}}
+function scheduleSync(){if(ROLE!=="teacher"||!db)return;clearTimeout(syncT);syncT=setTimeout(syncPortal,700)}
+async function syncPortal(){
+  if(!(S.mode==="db"&&portalLoaded))return;
+  const linked=new Map();for(const s of S.students.values())for(const a of codesOf(s))linked.set(a.code,{s,who:a.who});
+  for(const [code,{s,who}] of linked){const p=portalPayload(s,who);const cur=PORTAL.get(code);
+    if(cur&&JSON.stringify({who:cur.who,student:cur.student,exams:cur.exams})===JSON.stringify(p))continue;
+    try{await db.collection("portal").doc(code).set({...p,syncedAt:Date.now()})}catch(e){console.warn("portal",e)}}
+  for(const code of PORTAL.keys())if(!linked.has(code)){try{await db.collection("portal").doc(code).delete()}catch{}}}
+function bootStudent(){
+  document.body.classList.add("ro");UI.view="overview";
+  $("#crumb").textContent="Gelişimim";
+  if(!db||!ME){S.ready=true;S.mode="noaccess";setSave("warn");$("#saveTitle").textContent="Giriş gerekli";$("#saveText").textContent="Öğretmeninin seni davet ettiği hesapla giriş yap.";render();return}
+  const timer=setTimeout(()=>{if(!S.ready){S.ready=true;S.mode="waiting";render()}},10000);
+  db.doc("portal/"+ME).onSnapshot(d=>{
+    if(!d.exists){if(!d.metadata.fromCache){clearTimeout(timer);S.ready=true;S.mode="waiting";render()}return}
+    clearTimeout(timer);const data=d.data();const st=data.student;WHO=data.who==="Veli"?"Veli":"Öğrenci";
+    S.students=new Map([[st.id,{...st}]]);S.exams=new Map((data.exams||[]).map(e=>[e.id,{...e,studentId:st.id}]));
+    UI.sid=st.id;fitType(st);S.ready=true;S.mode="db";setSave("ok");$("#saveTitle").textContent="Sonuçlar güncel";$("#saveText").textContent="Öğretmen sonucu onayladığında burada görünür.";$("#crumb").textContent=WHO==="Veli"?"Öğrencimin gelişimi":"Gelişimim";render()},
+    ()=>{clearTimeout(timer);S.ready=true;S.mode="waiting";render()})}
+function viewWaiting(){
+  if(S.mode==="login")return viewLogin();
+  if(S.mode==="noaccess")return `<div class="card pad portal-wait"><div class="eyebrow">Öğrenci girişi</div><h1>Sonuçlarını görmek için giriş yap</h1><p class="lede">Öğretmenin bu sayfayı e-posta adresinle paylaşmalı. Aynı adresle claude.ai hesabına giriş yaptıktan sonra sayfayı yeniden aç.</p></div>`;
+  return `<div class="card pad portal-wait"><div class="eyebrow">Öğrenci girişi</div><h1>Erişim kodun hazır</h1><p class="lede">Bu kodu öğretmene gönder. Öğretmen kodu kaydettiğinde deneme sonuçları bu sayfada kendiliğinden açılır. Veliler de aynı şekilde kendi kodlarını gönderir.</p>
+    <div class="codebox"><code id="myCode">${esc(ME)}</code><button class="btn sm" id="copyCode">Kodu kopyala</button></div>
+    <p class="lede" style="font-size:13px">Kod yalnızca senin hesabına aittir; başkasının hesabında çalışmaz.</p></div>`}
+function accessModal(){const s=currentStudent();const codes=codesOf(s);
+  openModal(`<div class="m-h"><div><h2>Öğrenci ve veli erişimi</h2><p>${esc(s.name)} ve velisi yalnızca bu öğrencinin sonuçlarını görür. Yeni sonucu sana gönderebilirler; sen onaylamadan kayda girmez.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <form class="m-b" id="acForm" novalidate>
+      ${codes.length?`<div style="display:flex;flex-direction:column;gap:8px">${codes.map(a=>`<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px"><span style="display:flex;gap:8px;align-items:center;min-width:0"><span class="badge on">● ${esc(a.who)}</span><code class="mono" style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis">${esc(a.code)}</code></span><span style="font-size:12px;color:var(--muted);white-space:nowrap">${PORTAL.has(a.code)?"aktarıldı":"aktarılıyor"}</span><button type="button" class="btn danger sm" data-rm="${esc(a.code)}">Kapat</button></div>`).join("")}</div>`:""}
+      <ol class="steps"><li>Sayfanın en üst çubuğundaki <b>paylaş</b> simgesinden (telefonda yukarı ok ⇧, bilgisayarda Paylaş düğmesi) sayfayı öğrencinin ya da velinin e-posta adresiyle paylaş. Görüntüleme izni yeterli.</li><li>Sayfayı kendi hesabıyla açınca ekranında bir <b>erişim kodu</b> görür ve sana gönderir.</li><li>Kodu aşağıya yapıştır, kimin olduğunu seç ve ekle.</li></ol>
+      <div class="fields" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)"><div class="fld"><label for="ac_code">Erişim kodu</label><input id="ac_code" placeholder="Ekrandaki kod" autocomplete="off" autofocus></div>
+        <div class="fld"><label for="ac_who">Kimin</label><select id="ac_who"><option>Öğrenci</option><option>Veli</option></select></div></div>
+      <p class="err" id="ac_err" hidden></p></form>
+    <div class="m-f"><span class="sum"></span><button class="btn quiet" data-act="close">Kapat</button><button class="btn primary" id="ac_save">Erişimi ekle</button></div>`,"small");
+  const save=async(list,msg)=>{const {id,...rest}=s;const data={...rest,access:list};delete data.portalId;closeModal();try{await put("students",s.id,data);scheduleSync();toast(msg)}catch{}};
+  $("#ac_save").addEventListener("click",()=>{const v=$("#ac_code").value.trim();const who=$("#ac_who").value;const err=$("#ac_err");
+    if(!v){err.textContent="Ekranda görünen kodu yapıştır.";err.hidden=false;return}
+    if(!CODE_RE.test(v)){err.textContent="Bu bir erişim kodu gibi görünmüyor. Boşluk olmadan, ekrandaki haliyle yapıştır.";err.hidden=false;return}
+    const other=[...S.students.values()].find(x=>codesOf(x).some(a=>a.code===v));if(other){err.textContent=`Bu kod zaten ${other.name} için kayıtlı.`;err.hidden=false;return}
+    save([...codes,{code:v,who}],`${who} erişimi açıldı.`)});
+  document.querySelectorAll("[data-rm]").forEach(b=>b.addEventListener("click",()=>save(codes.filter(a=>a.code!==b.dataset.rm),"Erişim kapatıldı.")));
+  $("#acForm").addEventListener("submit",e=>{e.preventDefault();$("#ac_save").click()})}
+
+/* ---------- veliden / öğrenciden gelen sonuç ---------- */
+const b64e=str=>btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=str=>decodeURIComponent(escape(atob(str.replace(/-/g,"+").replace(/_/g,"/"))));
+function shareModal(data,sname){
+  const T=TYPES[data.type];const lines=[`NET ATLASI · DENEME SONUCU`,`Öğrenci: ${sname}`,`Deneme: ${data.name} (${data.type})${data.date?" · "+fdate(data.date):""}`,""];
+  T.secs.forEach(sc=>{const parts=sc.subs.map(sb=>{const r=data.results[sb.key];return r?`${sc.subs.length>1?sb.name+" ":""}${r.c??"-"}D ${r.w??"-"}Y`:null}).filter(Boolean);const n=secNet(data,sc);if(n!=null)lines.push(`${sc.name}: ${parts.join(", ")}${isNum(data.overrides?.[sc.key])?" (bölüm neti elle)":""} → ${fmt(n)} net`)});
+  lines.push(`Genel net: ${fmt(totalNet(data))}`);if(data.note)lines.push(`Not: ${data.note}`);
+  const pay={v:1,s:data.studentId,n:sname,t:data.type,a:data.name,d:data.date,k:data.divisor,r:data.results,o:data.overrides,m:data.note,by:WHO};
+  lines.push("",`#NA1:${b64e(JSON.stringify(pay))}`);const text=lines.join("\n");
+  openModal(`<div class="m-h"><div><h2>Sonuç hazır</h2><p>Bu mesajı öğretmene gönder. Öğretmen kontrol edip kaydettiğinde sonuç sayfaya eklenir.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <div class="m-b"><div class="fld"><label for="sh_text">Gönderilecek mesaj</label><textarea id="sh_text" readonly style="min-height:220px;font-family:var(--f-mono);font-size:12.5px">${esc(text)}</textarea></div>
+    <p class="lede" style="font-size:13px">Mesajın son satırındaki kod sonucun tamamını taşır; silmeden gönder.</p></div>
+    <div class="m-f"><span class="sum"></span><a class="btn" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">WhatsApp ile gönder</a><button class="btn primary" id="sh_copy">Mesajı kopyala</button></div>`,"small");
+  $("#sh_copy").addEventListener("click",()=>{navigator.clipboard?.writeText(text).then(()=>toast("Mesaj kopyalandı.")).catch(()=>{const t=$("#sh_text");t.focus();t.select();toast("Metni seçtim; kopyalayıp gönder.")})})}
+function importModal(){
+  openModal(`<div class="m-h"><div><h2>Gelen sonucu ekle</h2><p>Öğrenci ya da velinin gönderdiği mesajı olduğu gibi yapıştır.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <form class="m-b" id="imForm" novalidate><div class="fld"><label for="im_text">Mesaj</label><textarea id="im_text" style="min-height:180px;font-family:var(--f-mono);font-size:12.5px" placeholder="NET ATLASI · DENEME SONUCU …" autofocus></textarea></div><p class="err" id="im_err" hidden></p></form>
+    <div class="m-f"><span class="sum"></span><button class="btn quiet" data-act="close">Vazgeç</button><button class="btn primary" id="im_go">Kontrol et</button></div>`,"small");
+  $("#im_go").addEventListener("click",()=>{const err=$("#im_err");const m=$("#im_text").value.match(/#NA1:([A-Za-z0-9_-]+)/);
+    let p=null;try{p=m&&JSON.parse(b64d(m[1]))}catch{}
+    if(!p||!TYPES[p.t]){err.textContent="Mesajda sonuç kodu bulunamadı. Mesajı #NA1: ile başlayan son satırıyla birlikte yapıştır.";err.hidden=false;return}
+    let sid=S.students.has(p.s)?p.s:([...S.students.values()].find(x=>x.name===p.n)?.id||UI.sid);
+    closeModal();examModal({studentId:sid,type:p.t,name:p.a||"",date:p.d||"",divisor:isNum(p.k)?+p.k:TYPES[p.t].div,results:p.r||{},overrides:p.o||{},note:[p.m,`${p.by||"Öğrenci"} tarafından gönderildi.`].filter(Boolean).join(" ")},"import")})}
+
+/* ---------- GitHub öğrenci sitesi (şifreli) ---------- */
+const enc=new TextEncoder(),dec=new TextDecoder();
+const toB64=buf=>{let b="";new Uint8Array(buf).forEach(x=>b+=String.fromCharCode(x));return btoa(b)};
+const fromB64=str=>Uint8Array.from(atob(str),c=>c.charCodeAt(0));
+const normUser=u=>String(u||"").trim().toLocaleLowerCase("tr-TR");
+async function entryKey(u){const h=await crypto.subtle.digest("SHA-256",enc.encode("net-atlasi:"+normUser(u)));return [...new Uint8Array(h)].slice(0,12).map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function deriveKey(pass,salt){const base=await crypto.subtle.importKey("raw",enc.encode(String(pass).trim()),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function sealEntry(obj,pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const key=await deriveKey(pass,salt);
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(JSON.stringify(obj)));return {s:toB64(salt),i:toB64(iv),c:toB64(ct)}}
+async function openEntry(e,pass){const key=await deriveKey(pass,fromB64(e.s));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:fromB64(e.i)},key,fromB64(e.c));return JSON.parse(dec.decode(pt))}
+const SITE_DEFAULT="https://umutkose-stack.github.io/net-atlasi/";
+const slugify=n=>normUser(n).replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ş/g,"s").replace(/ü/g,"u").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"ogrenci";
+function newPass(){const a="abcdefghjkmnpqrstuvwxyz23456789";const r=crypto.getRandomValues(new Uint8Array(8));const p=[...r].map(x=>a[x%a.length]).join("");return p.slice(0,4)+"-"+p.slice(4)}
+function credText(s,site){return `Net Atlası öğrenci sayfası\n${site}\nKullanıcı adı: ${s.gh.user}\nŞifre: ${s.gh.pass}\n(Öğrenci ve veli aynı bilgilerle girer.)`}
+async function setGh(s,gh){const {id,...rest}=s;await put("students",s.id,{...rest,gh})}
+function githubModal(){
+  const site=ls.get("na-site",SITE_DEFAULT);
+  const rows=studentsSorted().map(s=>{const g=s.gh;return `<div class="cred-row"><input type="checkbox" id="gh_${s.id}" data-ghon="${s.id}" ${g?.on?"checked":""} aria-label="${esc(s.name)} siteye dahil"><div style="min-width:0"><div class="who2">${esc(s.name)} <span class="badge">${trackOf(s)}</span></div>${g?.on?`<code>kullanıcı: ${esc(g.user)} · şifre: ${esc(g.pass)}</code>`:`<code>siteye dahil değil</code>`}</div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${g?.on?`<button type="button" class="btn sm" data-ghcopy="${s.id}">Kopyala</button><button type="button" class="btn quiet sm" data-ghnew="${s.id}">Yeni şifre</button>`:""}</div></div>`}).join("");
+  openModal(`<div class="m-h"><div><h2>GitHub öğrenci sitesi</h2><p>Her öğrencinin sonuçları kendi şifresiyle şifrelenir. Öğrenci ve velisi aynı kullanıcı adı ve şifreyle yalnızca kendi sonuçlarını görür.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <div class="m-b"><div class="fld"><label for="gh_site">Site adresi</label><input id="gh_site" value="${esc(site)}"></div>
+      <div style="display:flex;flex-direction:column;gap:8px">${rows}</div>
+      <ol class="steps"><li>Siteye dahil etmek istediğin öğrencileri işaretle; kullanıcı adı ve şifre kendiliğinden oluşur.</li><li><b>data.json indir</b>'e bas.</li><li>GitHub'da <b>net-atlasi</b> reposunu aç, <b>Add file → Upload files</b> ile bu dosyayı yükle (eskisinin yerine geçer) ve <b>Commit changes</b>'e bas. Bir iki dakika içinde site güncellenir.</li><li>Yeni deneme girdiğinde 2. ve 3. adımı tekrarla.</li></ol>
+      <p class="err" id="gh_err" hidden></p></div>
+    <div class="m-f"><span class="sum" id="gh_sum">${studentsSorted().filter(s=>s.gh?.on).length} öğrenci dahil</span><button class="btn quiet" data-act="close">Kapat</button><button class="btn primary" id="gh_dl">data.json indir</button></div>`);
+  $("#gh_site").addEventListener("change",e=>ls.set("na-site",e.target.value.trim()||SITE_DEFAULT));
+  document.querySelectorAll("[data-ghon]").forEach(cb=>cb.addEventListener("change",async()=>{const s=S.students.get(cb.dataset.ghon);let g=s.gh?{...s.gh}:null;
+    if(cb.checked&&!g){const taken=new Set([...S.students.values()].map(x=>x.gh?.user).filter(Boolean));let u=slugify(s.name),n=2;while(taken.has(u))u=slugify(s.name)+"-"+n++;g={user:u,pass:newPass()}}
+    if(g){g.on=cb.checked;try{await setGh(s,g)}catch{}}githubModal()}));
+  document.querySelectorAll("[data-ghnew]").forEach(b=>b.addEventListener("click",async()=>{const s=S.students.get(b.dataset.ghnew);try{await setGh(s,{...s.gh,pass:newPass()})}catch{}githubModal();toast("Yeni şifre oluştu. data.json'u yeniden yüklemeyi unutma.")}));
+  document.querySelectorAll("[data-ghcopy]").forEach(b=>b.addEventListener("click",()=>{const s=S.students.get(b.dataset.ghcopy);const t=credText(s,$("#gh_site").value.trim()||SITE_DEFAULT);navigator.clipboard?.writeText(t).then(()=>toast("Giriş bilgileri kopyalandı.")).catch(()=>toast(t.replace(/\n/g," · ")))}));
+  $("#gh_dl").addEventListener("click",async()=>{const inc=studentsSorted().filter(s=>s.gh?.on&&s.gh.user&&s.gh.pass);const err=$("#gh_err");
+    if(!inc.length){err.textContent="Önce en az bir öğrenciyi işaretle.";err.hidden=false;return}
+    $("#gh_dl").disabled=true;$("#gh_dl").textContent="Şifreleniyor…";
+    try{const entries={};for(const s of inc){const p=portalPayload(s,"Öğrenci");entries[await entryKey(s.gh.user)]=await sealEntry({...p,updated:new Date().toISOString()},s.gh.pass)}
+      await saveFile("data.json",JSON.stringify({app:"net-atlasi",v:1,updated:new Date().toISOString(),entries}))}
+    catch(e){err.textContent="Dosya hazırlanamadı. Sayfayı yenileyip tekrar dene.";err.hidden=false}
+    $("#gh_dl").disabled=false;$("#gh_dl").textContent="data.json indir"})}
+let SITE_DATA=null;
+async function bootStatic(){
+  ROLE="student";document.body.classList.add("ro","static");UI.view="overview";S.ready=true;S.mode="login";
+  setSave("ok");$("#saveTitle").textContent="Güvenli giriş";$("#saveText").textContent="Sonuçlar şifreli saklanır; yalnızca şifreyle açılır.";
+  try{const r=await fetch("data.json",{cache:"no-store"});SITE_DATA=await r.json()}catch{SITE_DATA=null}
+  render();
+  const saved=ls.get("na-login",null);if(saved&&SITE_DATA)tryLogin(saved.u,saved.p,saved.who,true)}
+async function tryLogin(u,p,who,silent){const err=$("#lg_err");
+  try{const e=SITE_DATA?.entries?.[await entryKey(u)];if(!e)throw 0;const data=await openEntry(e,p);
+    WHO=who==="Veli"?"Veli":"Öğrenci";const st=data.student;S.students=new Map([[st.id,{...st}]]);S.exams=new Map((data.exams||[]).map(x=>[x.id,{...x,studentId:st.id}]));
+    UI.sid=st.id;fitType(st);S.mode="db";$("#saveText").textContent=`Son güncelleme: ${new Date(data.updated||SITE_DATA.updated).toLocaleDateString("tr-TR",{day:"numeric",month:"long"})}`;
+    if($("#lg_rem")?.checked||silent)ls.set("na-login",{u,p,who});render()}
+  catch{if(silent){ls.set("na-login",null);return}if(err){err.textContent="Kullanıcı adı ya da şifre hatalı. Öğretmeninden aldığın bilgileri kontrol et.";err.hidden=false}}}
+function viewLogin(){
+  if(!SITE_DATA)return `<div class="card pad login"><div class="eyebrow">Net Atlası</div><h1>Sonuçlar yüklenemedi</h1><p class="lede">İnternet bağlantını kontrol edip sayfayı yenile.</p></div>`;
+  return `<form class="card pad login" id="lgForm" novalidate><div class="eyebrow">Net Atlası · öğrenci ve veli girişi</div><h1>Deneme sonuçlarına bak</h1><p class="lede">Öğretmeninden aldığın kullanıcı adı ve şifreyle gir.</p>
+    <div class="fld"><label for="lg_user">Kullanıcı adı</label><input id="lg_user" autocomplete="username" autocapitalize="none" placeholder="Örn. bulut-y" autofocus></div>
+    <div class="fld"><label for="lg_pass">Şifre</label><input id="lg_pass" type="password" autocomplete="current-password" placeholder="Örn. abcd-1234"></div>
+    <div class="fld"><label for="lg_who">Giriş yapan</label><select id="lg_who"><option>Öğrenci</option><option>Veli</option></select></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="lg_rem" checked> Bu cihazda beni hatırla</label>
+    <p class="err" id="lg_err" hidden></p><button class="btn primary" id="lg_go" type="submit" style="justify-content:center">Giriş yap</button></form>`}
+
+/* ---------- türetilmiş veri ---------- */
+function studentsSorted(){return [...S.students.values()].sort((a,b)=>(a.order??a.createdAt??0)-(b.order??b.createdAt??0)||a.name.localeCompare(b.name,"tr"))}
+function examsOf(sid,type){return [...S.exams.values()].filter(e=>e.studentId===sid&&(!type||e.type===type))}
+function primaryType(sid){const c={};examsOf(sid).forEach(e=>c[e.type]=(c[e.type]||0)+1);return Object.entries(c).sort((a,b)=>b[1]-a[1])[0]?.[0]||"TYT"}
+function summary(list){const ch=chrono(list).filter(e=>totalNet(e)!=null);if(!ch.length)return null;const nets=ch.map(totalNet);
+  const best=ch.reduce((b,e)=>totalNet(e)>totalNet(b)?e:b);return{last:nets.at(-1),prev:nets.length>1?nets.at(-2):null,avg:nets.reduce((a,b)=>a+b,0)/nets.length,best,bestNet:totalNet(best),n:ch.length,nets}}
+function currentStudent(){let s=S.students.get(UI.sid);if(!s){s=studentsSorted()[0];if(s)UI.sid=s.id}return s}
+
+/* ---------- çizim ---------- */
+const ICON={trend:'<svg class="ico" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',bars:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',trophy:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8 20h8"/></svg>',doc:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>',edit:'<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',trash:'<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',plus:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',target:'<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg>',arrow:'<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',dots:'<svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/></svg>'};
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function deltaChip(d,suffix=""){if(d==null)return "";const cls=Math.abs(d)<.005?"flat":d>0?"up":"down";const ar=cls==="flat"?"→":d>0?"↗":"↘";return `<span class="chip ${cls} num">${ar} ${signed(d)} net${suffix}</span>`}
+
+function render(){
+  $("#today").textContent=new Date().toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"});
+  $("#navCount").textContent=S.students.size;
+  document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",String(b.dataset.view===UI.view)));
+  $("#crumb").textContent={overview:"Genel bakış",students:"Öğrenciler",table:"Deneme tablosu"}[UI.view];
+  renderSide();
+  const c=$("#content");
+  const keepScroll=window.scrollY;
+  if(ROLE==="student"){$("#crumb").textContent=WHO==="Veli"?"Öğrencimin gelişimi":"Gelişimim";if(S.ready&&S.mode!=="db"){c.innerHTML=viewWaiting();return}}
+  if(!S.ready){c.innerHTML=`<div class="card empty"><h3>Kayıtlar yükleniyor</h3><p>Öğrenciler ve deneme sonuçları birazdan burada.</p></div>`;return}
+  if(UI.view==="students")c.innerHTML=viewStudents();
+  else if(UI.view==="table")c.innerHTML=viewTable();
+  else{c.innerHTML=viewOverview();drawChart()}
+  window.scrollTo(0,keepScroll);
+}
+function renderSide(){
+  const q=UI.sq.toLocaleLowerCase("tr-TR");
+  const list=studentsSorted().filter(s=>!q||s.name.toLocaleLowerCase("tr-TR").includes(q));
+  $("#slist").innerHTML=list.length?list.map(s=>`<button class="sitem" data-sid="${s.id}" aria-current="${s.id===UI.sid}"><span class="av">${esc(initials(s.name))}</span><span class="meta"><div class="nm">${esc(s.name)}</div><div class="sub">${esc(s.level||"Öğrenci")} · ${examsOf(s.id).length} deneme</div></span></button>`).join(""):`<div style="padding:8px;font-size:13px;color:var(--muted)">${S.students.size?"Eşleşen öğrenci yok.":"Henüz öğrenci yok."}</div>`}
+
+function typeBar(active,attr="data-type",types=Object.keys(TYPES)){return `<div class="seg" role="group" aria-label="Sınav türü">${types.map(t=>`<button ${attr}="${t}" aria-pressed="${t===active}">${t}</button>`).join("")}</div>`}
+
+function viewOverview(){
+  const s=currentStudent();
+  if(!s)return `<div class="head-row"><div><div class="eyebrow">Öğrenci performansı</div><h1>Gelişime genel bakış</h1><p class="lede">Sonuçları kaydet, ders bazında ilerlemeyi gör.</p></div></div>
+    <div class="card empty"><h3>İlk öğrencini ekle</h3><p>Öğrenci ekledikten sonra deneme sonuçlarını girip net gelişimini takip edebilirsin.</p><button class="btn primary" data-act="add-student">${ICON.plus}Öğrenci ekle</button></div>`;
+  fitType(s);const ro=ROLE==="student";const T=TYPES[UI.type];const list=examsOf(s.id,UI.type);const sm=summary(list);const target=s.targets?.[UI.type];
+  const otherTypes=Object.keys(TYPES).filter(t=>!typesOf(s).includes(t)&&examsOf(s.id,t).length);
+  let h=`<div class="head-row"><div><div class="eyebrow">Öğrenci performansı</div><h1>${ro?(WHO==="Veli"?`${esc(s.name)} · gelişim`:`Merhaba ${esc(s.name.split(" ")[0])}`):"Gelişime genel bakış"}</h1><p class="lede">${ro?(WHO==="Veli"?"Deneme sonuçları ve ders ders gelişim. Yeni bir sonucu Sonuç gönder ile öğretmene iletebilirsiniz.":"Deneme sonuçların ve ders ders gelişimin."):"Sonuçları kaydet, ders bazında ilerlemeyi gör."}</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn teach" data-act="import">Gelen sonucu ekle</button><button class="btn primary teach" data-act="add-exam">${ICON.plus}<span class="lbl">Deneme ekle</span></button><button class="btn primary ro-only" data-act="submit-exam">${ICON.plus}<span class="lbl">Sonuç gönder</span></button></div></div>
+  <div class="typebar">${typeBar(UI.type,"data-type",typesOf(s))}<span class="hint">${T.label} sonuçları · varsayılan ${DIV_LABEL[T.div]}${otherTypes.length?` · ${otherTypes.map(t=>`<button class="linkish" data-type="${t}">${t}: ${examsOf(s.id,t).length} kayıt</button>`).join(", ")}`:""}</span></div>
+  <div class="card pad student-bar"><span class="av">${esc(initials(s.name))}</span>
+    <div class="who"><div class="n">${esc(s.name)}<button class="icon-btn teach" data-act="edit-student" data-id="${s.id}" aria-label="Öğrenciyi düzenle">${ICON.edit}</button></div>
+    <div class="s">${ro?`<span>${esc(s.level||"Öğrenci")}</span>`:`<button class="linkish" data-act="edit-student" data-id="${s.id}">${s.level?esc(s.level):"Sınıf bilgisi ekle"}</button>`}<span>·</span><span>${TRACKS[trackOf(s)].label}</span><span>·</span><span>${list.length} ${T.label} deneme kaydı</span>${s.note&&!ro?`<span>·</span><span>${esc(s.note)}</span>`:""}</div></div>
+    ${ro&&target?`<span class="badge">${ICON.target}Hedef: ${fmt(target)} net</span>`:""}
+    <button class="btn sm teach" data-act="access">${codesOf(s).length?`<span class="badge on" style="padding:0 6px">● ${codesOf(s).length}</span>Öğrenci ve veli erişimi`:"Öğrenci ve veli erişimi"}</button>
+    <button class="btn sm teach" data-act="target">${ICON.target}${target?`Hedef: ${fmt(target)} net`:"Net hedefi belirle"}</button>
+    <label class="visually-hidden" for="pickStudent" hidden>Öğrenci seç</label>
+    <select class="pick teach" id="pickStudent" aria-label="Öğrenci seç">${studentsSorted().map(x=>`<option value="${x.id}" ${x.id===s.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
+  </div>`;
+  if(!list.length)return h+`<div class="card empty"><h3>${esc(s.name)} için ${T.label} denemesi yok</h3><p>${ro?"Öğretmenin bir sonuç girdiğinde netlerin, grafik ve ders ortalamaların burada görünür.":"İlk sonucu girdiğinde netler, grafik ve ders ortalamaları burada görünür."}</p><button class="btn primary teach" data-act="add-exam">${ICON.plus}Deneme ekle</button><button class="btn primary ro-only" data-act="submit-exam">${ICON.plus}Sonuç gönder</button></div>`;
+  const complete=list.filter(e=>!missingSubs(e)).length;
+  h+=`<div class="kpis">
+    <div class="card kpi"><div class="k">Son deneme neti<span class="kico">${ICON.trend}</span></div><div class="v num">${fmt(sm?.last)}<small>net</small></div><div class="f">${sm?.prev!=null?deltaChip(sm.last-sm.prev)+" önceki denemeye göre":"İlk kayıt"}</div></div>
+    <div class="card kpi"><div class="k">Ortalama net<span class="kico">${ICON.bars}</span></div><div class="v num">${fmt(sm?.avg)}<small>net</small></div><div class="f">${target?`<span style="flex:1">Hedefe ${fmt(Math.max(0,target-(sm?.avg||0)))} net kaldı</span><div class="meter" style="flex-basis:100%"><i style="width:${Math.min(100,(sm?.avg||0)/target*100)}%"></i></div>`:`${sm?.n||0} denemenin ortalaması`}</div></div>
+    <div class="card kpi"><div class="k">En yüksek net<span class="kico" style="color:var(--gold)">${ICON.trophy}</span></div><div class="v num">${fmt(sm?.bestNet)}<small>net</small></div><div class="f"><span class="chip gold">${esc(sm?.best?.name||"")}</span>${sm?.best?.date?fdate(sm.best.date):""}</div></div>
+    <div class="card kpi"><div class="k">Kaydedilen deneme<span class="kico">${ICON.doc}</span></div><div class="v num">${String(list.length).padStart(2,"0")}<small>deneme</small></div><div class="f">${complete===list.length?"✓ Tüm ders ayrıntıları tamam":`${list.length-complete} denemede eksik ders alanı`}</div></div>
+  </div>
+  <div class="grid2">
+    <section class="card pad"><div class="card-h"><div><h2>Net gelişimi</h2><p>Tarihe göre, eskiden yeniye</p></div><span class="chip flat">${chrono(list).length} deneme</span></div>
+      <div class="legend" id="legend"><button data-series="total" aria-pressed="${!!UI.series.total}"><i style="background:var(--c-total)"></i>Genel net</button>${T.secs.map(sc=>`<button data-series="${sc.key}" aria-pressed="${!!UI.series[sc.key]}"><i style="background:var(${sc.color})"></i>${sc.name}</button>`).join("")}</div>
+      <div class="chart" id="chart"></div>
+      <div class="foot-note"><span class="dot ok" style="margin:0"></span>Noktaların üzerine gelerek deneme ayrıntılarını görebilirsin.${target?" Kesikli çizgi hedefi gösterir.":""}</div></section>
+    <section class="card pad"><div class="card-h"><div><h2>Ders ortalamaları</h2><p>Kayıtlı denemeler üzerinden</p></div></div>
+      <div class="subjects">${T.secs.map(sc=>{const vals=chrono(list).map(e=>secNet(e,sc)).filter(v=>v!=null);const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;const d=vals.length>1?vals.at(-1)-vals.at(-2):null;
+        return `<div class="subj"><span class="tag" style="background:color-mix(in srgb,var(${sc.color}) 14%,transparent);color:var(${sc.color})">${sc.tag}</span><div><div class="nm">${sc.name}</div><div class="av2 num"><b>${fmt(avg)}</b>ortalama net</div></div><div class="rt">${spark(vals,sc.color)}${deltaChip(d)}</div></div>`}).join("")}</div>
+      <div class="foot-note">Değişimler son iki denemeyi karşılaştırır.</div></section>
+  </div>
+  ${examTable(list,T,s)}`;
+  return h}
+
+function spark(vals,color){if(vals.length<2)return `<svg class="spark" width="72" height="24" aria-hidden="true"></svg>`;const mx=Math.max(...vals),mn=Math.min(...vals),rg=mx-mn||1;
+  const pts=vals.map((v,i)=>[2+i*(68/(vals.length-1)),21-(v-mn)/rg*18]);const p=pts.map(q=>q.map(r2).join(",")).join(" ");const last=pts.at(-1);
+  return `<svg class="spark" width="72" height="24" viewBox="0 0 72 24" aria-hidden="true"><polyline points="${p}" fill="none" stroke="var(${color})" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${r2(last[0])}" cy="${r2(last[1])}" r="2.4" fill="var(${color})"/></svg>`}
+
+function examTable(list,T,s){
+  const q=UI.q.toLocaleLowerCase("tr-TR");
+  const rows=sortExams(list,UI.sort).filter(e=>!q||e.name.toLocaleLowerCase("tr-TR").includes(q));
+  const avgSec=T.secs.map(sc=>{const v=list.map(e=>secNet(e,sc)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null});
+  const tv=list.map(totalNet).filter(x=>x!=null);const avgT=tv.length?tv.reduce((a,b)=>a+b,0)/tv.length:null;
+  return `<section class="card pad" id="results"><div class="card-h"><div><h2>Deneme sonuçları <span class="chip flat num">${list.length}</span></h2><p>Doğru, yanlış ve netleri tek yerde takip et.</p></div>
+    <div class="tbl-tools"><label class="search" for="eq" style="width:180px"><svg class="ico" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><input id="eq" placeholder="Deneme ara…" value="${esc(UI.q)}" autocomplete="off"></label>
+    <select class="pick" id="sortSel" aria-label="Sıralama"><option value="asc" ${UI.sort==="asc"?"selected":""}>Tarih: eskiden yeniye</option><option value="desc" ${UI.sort==="desc"?"selected":""}>Tarih: yeniden eskiye</option><option value="added" ${UI.sort==="added"?"selected":""}>Kayıt sırası</option></select>
+    <div class="seg sm" role="group" aria-label="Görünüm"><button data-dyn="0" aria-pressed="${!UI.dyn}">Özet</button><button data-dyn="1" aria-pressed="${UI.dyn}">D / Y / Net</button></div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Deneme</th>${T.secs.map(sc=>`<th><span class="sw" style="background:var(${sc.color})"></span>${sc.name}<small>${UI.dyn?"D · Y · Net":"Toplam net"}</small></th>`).join("")}<th class="tot">Genel net</th><th class="teach"><span hidden>İşlemler</span></th></tr></thead>
+    <tbody>${rows.length?rows.map((e,i)=>examRow(e,T,i)).join(""):`<tr><td colspan="${T.secs.length+3}" style="text-align:center;color:var(--muted);padding:28px">Aramayla eşleşen deneme yok.</td></tr>`}</tbody>
+    <tfoot><tr><td>Ortalama</td>${avgSec.map(a=>`<td class="num">${fmt(a)}</td>`).join("")}<td class="tot num">${fmt(avgT)}</td><td class="teach"></td></tr></tfoot></table></div>
+    <div class="tbl-foot"><span>Ders ayrıntıları için D / Y / Net görünümünü seç. Tarihi olmayan denemeler en sonda gösterilir. <span class="ovr">●</span> elle girilmiş bölüm neti.</span><button class="btn quiet sm" data-act="csv">CSV indir</button></div></section>`}
+
+function examRow(e,T,i){
+  const cells=T.secs.map(sc=>{const n=secNet(e,sc);const o=isNum(e.overrides?.[sc.key]);
+    if(!UI.dyn)return `<td class="num">${fmt(n)}${o?'<span class="ovr" title="Elle girilmiş bölüm neti">●</span>':""}</td>`;
+    const {c,w}=secCW(e,sc);
+    return `<td><span class="dyn num"><span class="d">${c??"—"}</span><span class="y">${w??"—"}</span><span class="n">${fmt(n)}${o?'<span class="ovr">●</span>':""}</span></span></td>`}).join("");
+  const conf=UI.confirm===e.id;
+  return `<tr><td><div class="ex" style="display:flex;gap:12px;align-items:center"><span class="idx num">${String(i+1).padStart(2,"0")}</span><div><div class="nm">${esc(e.name)}${overLimit(e)?` <span class="chip down" title="${esc(overLimit(e))}">soru sayısı aşılmış</span>`:""}</div><div class="dt">${fdate(e.date)} · ${DIV_LABEL[e.divisor]??""}${e.note?` · <span title="${esc(e.note)}">not var</span>`:""}</div></div></div></td>${cells}<td class="tot num">${fmt(totalNet(e))}</td>
+    <td class="teach"><div class="acts">${conf?`<span class="confirm-inline"><button class="btn danger sm" data-act="del-exam-yes" data-id="${e.id}">Sil</button><button class="btn quiet sm" data-act="cancel">Vazgeç</button></span>`:`<button class="icon-btn" data-act="edit-exam" data-id="${e.id}" aria-label="${esc(e.name)} düzenle">${ICON.edit}</button><button class="icon-btn" data-act="del-exam" data-id="${e.id}" aria-label="${esc(e.name)} sil">${ICON.trash}</button>`}</div></td></tr>`}
+
+function drawChart(){
+  const el=$("#chart");if(!el)return;const s=currentStudent();const T=TYPES[UI.type];
+  const list=chrono(examsOf(s.id,UI.type));
+  const series=[];if(UI.series.total)series.push({key:"total",name:"Genel net",color:"--c-total",vals:list.map(totalNet),w:2.4});
+  T.secs.forEach(sc=>{if(UI.series[sc.key])series.push({key:sc.key,name:sc.name,color:sc.color,vals:list.map(e=>secNet(e,sc)),w:1.8})});
+  const W=Math.max(320,el.clientWidth||640),H=Math.round(Math.min(300,Math.max(220,W*.42)));const P={l:34,r:14,t:14,b:30};
+  const target=s.targets?.[UI.type];
+  let mx=Math.max(1,...series.flatMap(x=>x.vals.filter(v=>v!=null)),target||0);let mn=Math.min(0,...series.flatMap(x=>x.vals.filter(v=>v!=null)));
+  const step=[1,2,5,10,20,25,50].find(st=>(mx-mn)/st<=5)||100;mx=Math.ceil(mx/step)*step;mn=Math.floor(mn/step)*step;
+  const n=list.length;const X=i=>n<2?P.l+(W-P.l-P.r)/2:P.l+i*(W-P.l-P.r)/(n-1);const Y=v=>P.t+(mx-v)/(mx-mn)*(H-P.t-P.b);
+  let g="";for(let v=mn;v<=mx+1e-9;v+=step){g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-dasharray="${v===0?"":"3 4"}"/><text x="${P.l-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`}
+  const every=Math.ceil(n/Math.max(2,Math.floor((W-P.l-P.r)/78)));
+  list.forEach((e,i)=>{if(i%every===0||i===n-1)g+=`<text x="${X(i)}" y="${H-8}" text-anchor="${n>1&&i===0?"start":n>1&&i===n-1?"end":"middle"}">${i+1}. deneme</text>`});
+  if(target)g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(target)}" y2="${Y(target)}" stroke="var(--gold)" stroke-width="1.4" stroke-dasharray="6 5"/><text x="${W-P.r}" y="${Y(target)-6}" text-anchor="end" style="fill:var(--gold)">hedef ${fmt(target)}</text>`;
+  series.forEach(sr=>{const pts=sr.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);const segs=[];let cur=[];pts.forEach(p=>{if(p)cur.push(p);else if(cur.length){segs.push(cur);cur=[]}});if(cur.length)segs.push(cur);
+    if(sr.key==="total"&&segs.length===1&&segs[0].length>1){const sg=segs[0];g+=`<path d="M${sg.map(p=>p.join(",")).join("L")}L${sg.at(-1)[0]},${Y(Math.max(mn,0))}L${sg[0][0]},${Y(Math.max(mn,0))}Z" fill="var(--c-total)" opacity=".08"/>`}
+    segs.forEach(sg=>{g+=`<polyline points="${sg.map(p=>p.map(r2).join(",")).join(" ")}" fill="none" stroke="var(${sr.color})" stroke-width="${sr.w}" stroke-linejoin="round" stroke-linecap="round"/>`});
+    pts.forEach((p,i)=>{if(p)g+=`<circle cx="${r2(p[0])}" cy="${r2(p[1])}" r="${i===n-1?4.5:3.5}" fill="${i===n-1?`var(${sr.color})`:"var(--panel)"}" stroke="var(${sr.color})" stroke-width="2"/>`})});
+  list.forEach((e,i)=>{const x0=n<2?P.l:(X(i)+X(Math.max(0,i-1)))/2,x1=n<2?W-P.r:(X(i)+X(Math.min(n-1,i+1)))/2;g+=`<rect class="hit" data-i="${i}" x="${i===0?P.l:x0}" y="${P.t}" width="${Math.max(1,(i===n-1?W-P.r:x1)-(i===0?P.l:x0))}" height="${H-P.t-P.b}" fill="transparent"/>`});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Net gelişimi grafiği">${g}</svg><div class="tip" id="tip" hidden></div>`;
+  const tip=$("#tip");
+  el.querySelectorAll(".hit").forEach(r=>{const show=()=>{const i=+r.dataset.i,e=list[i];const top=Math.min(...series.map(sr=>sr.vals[i]).filter(v=>v!=null).map(Y),H-P.b);
+      tip.innerHTML=`<b>${esc(e.name)}</b><div style="color:var(--muted);margin-bottom:6px">${i+1}. deneme · ${fdate(e.date)}</div><div class="r"><span><i class="dot" style="margin:0;background:var(--c-total)"></i>Genel net</span><b class="num" style="display:inline">${fmt(totalNet(e))}</b></div>${T.secs.map(sc=>`<div class="r"><span><i class="dot" style="margin:0;background:var(${sc.color})"></i>${sc.name}</span><span class="num">${fmt(secNet(e,sc))}</span></div>`).join("")}`;
+      const sx=el.clientWidth/W;let left=X(i)*sx;left=Math.max(95,Math.min(el.clientWidth-95,left));tip.style.left=left+"px";tip.style.top=(isFinite(top)?top*sx:20)+"px";tip.hidden=false};
+    r.addEventListener("mouseenter",show);r.addEventListener("click",show);r.addEventListener("mouseleave",()=>tip.hidden=true)})}
+
+function viewStudents(){
+  const list=studentsSorted();const tot=[...S.exams.values()].length;
+  return `<div class="head-row"><div><div class="eyebrow">Sınıfın</div><h1>Öğrenciler</h1><p class="lede num">${list.length} öğrenci · ${tot} deneme kaydı</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label class="search" for="sq2" style="width:200px"><svg class="ico" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><input id="sq2" placeholder="Öğrenci ara…" value="${esc(UI.sq)}" autocomplete="off"></label><button class="btn primary" data-act="add-student">${ICON.plus}<span class="lbl">Öğrenci ekle</span></button></div></div>
+  <div class="scards">${list.filter(s=>!UI.sq||s.name.toLocaleLowerCase("tr-TR").includes(UI.sq.toLocaleLowerCase("tr-TR"))).map(s=>{const pt=primaryType(s.id);const ex=examsOf(s.id,pt);const sm=summary(ex);const conf=UI.confirm===s.id;
+    return `<article class="card scard"><div class="top2"><span class="av">${esc(initials(s.name))}</span><div class="menu-wrap"><button class="icon-btn" data-act="smenu" data-id="${s.id}" aria-label="${esc(s.name)} seçenekleri">${ICON.dots}</button>${UI.menu===s.id?`<div class="menu" style="min-width:180px"><button data-act="edit-student" data-id="${s.id}">${ICON.edit}Düzenle</button>${conf?`<button data-act="del-student-yes" data-id="${s.id}" style="color:var(--down)">${ICON.trash}Evet, tüm kayıtlarıyla sil</button>`:`<button data-act="del-student" data-id="${s.id}" style="color:var(--down)">${ICON.trash}Öğrenciyi sil</button>`}</div>`:""}</div></div>
+      <div><div class="n">${esc(s.name)}</div><div class="lv">${esc(s.level||"Sınıf bilgisi eklenmemiş")} · ${trackOf(s)}${codesOf(s).length?` · <span class="badge on" style="padding:0 6px">${codesOf(s).map(a=>a.who).join(" + ")}</span>`:""}</div></div>
+      <div class="stats3 num"><div><span>Son net</span><b>${fmt(sm?.last)}</b></div><div><span>Ortalama</span><b>${fmt(sm?.avg)}</b></div><div><span>Deneme</span><b>${examsOf(s.id).length}</b></div></div>
+      ${sm&&sm.nets.length>1?`<div style="display:flex;justify-content:space-between;align-items:center">${spark(sm.nets,"--c-total")}${deltaChip(sm.last-sm.prev)}</div>`:""}
+      <button class="go" data-act="open-student" data-id="${s.id}" data-type="${pt}">Gelişimi görüntüle${ICON.arrow}</button></article>`}).join("")}
+    <button class="card scard add" data-act="add-student"><span class="av" style="margin:0 auto">${ICON.plus}</span><b style="color:var(--fg)">Yeni öğrenci ekle</b><span style="font-size:13px">Bir yeni yolculuk daha.</span></button></div>`}
+
+function viewTable(){
+  const T=TYPES[UI.tType];const q=UI.tq.toLocaleLowerCase("tr-TR");
+  let list=[...S.exams.values()].filter(e=>e.type===UI.tType&&(UI.tStudent==="all"||e.studentId===UI.tStudent)&&(!q||e.name.toLocaleLowerCase("tr-TR").includes(q)));
+  list=sortExams(list,UI.sort==="added"?"added":UI.sort);
+  const studs=studentsSorted();
+  const board=studs.map(s=>({s,sm:summary(examsOf(s.id,UI.tType))})).filter(x=>x.sm).sort((a,b)=>b.sm.avg-a.sm.avg);
+  return `<div class="head-row"><div><div class="eyebrow">Bütün kayıtlar</div><h1>Deneme tablosu</h1><p class="lede">Tüm öğrencilerin ${T.label} sonuçları tek tabloda.</p></div><button class="btn primary" data-act="add-exam">${ICON.plus}<span class="lbl">Deneme ekle</span></button></div>
+  <div class="typebar">${typeBar(UI.tType,"data-ttype")}</div>
+  ${board.length?`<section class="card pad"><div class="card-h"><div><h2>Sınıf özeti</h2><p>Ortalama nete göre sıralı</p></div></div><div class="tbl-wrap"><table><thead><tr><th>Öğrenci</th><th>Deneme</th><th>Son net</th><th>Değişim</th><th>Ortalama</th><th class="tot">En yüksek</th></tr></thead><tbody>${board.map(({s,sm})=>`<tr><td><button class="linkish" style="font-size:14px;font-weight:600;text-decoration:none" data-act="open-student" data-id="${s.id}" data-type="${UI.tType}">${esc(s.name)}</button></td><td class="num">${sm.n}</td><td class="num">${fmt(sm.last)}</td><td>${sm.prev!=null?deltaChip(sm.last-sm.prev):"—"}</td><td class="num">${fmt(sm.avg)}</td><td class="tot num">${fmt(sm.bestNet)}</td></tr>`).join("")}</tbody></table></div></section>`:""}
+  <section class="card pad"><div class="card-h"><div><h2>Denemeler <span class="chip flat num">${list.length}</span></h2></div>
+    <div class="tbl-tools"><select class="pick" id="tStud" aria-label="Öğrenci filtresi"><option value="all">Tüm öğrenciler</option>${studs.map(s=>`<option value="${s.id}" ${UI.tStudent===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select>
+      <label class="search" for="tq" style="width:170px"><svg class="ico" viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><input id="tq" placeholder="Deneme ara…" value="${esc(UI.tq)}" autocomplete="off"></label>
+      <select class="pick" id="sortSel" aria-label="Sıralama"><option value="asc" ${UI.sort==="asc"?"selected":""}>Tarih: eskiden yeniye</option><option value="desc" ${UI.sort==="desc"?"selected":""}>Tarih: yeniden eskiye</option><option value="added" ${UI.sort==="added"?"selected":""}>Kayıt sırası</option></select>
+      <div class="seg sm" role="group" aria-label="Görünüm"><button data-dyn="0" aria-pressed="${!UI.dyn}">Özet</button><button data-dyn="1" aria-pressed="${UI.dyn}">D / Y / Net</button></div></div></div>
+    ${list.length?`<div class="tbl-wrap"><table><thead><tr><th>Deneme</th><th style="text-align:left">Öğrenci</th>${T.secs.map(sc=>`<th><span class="sw" style="background:var(${sc.color})"></span>${sc.name}<small>${UI.dyn?"D · Y · Net":"Toplam net"}</small></th>`).join("")}<th class="tot">Genel net</th><th></th></tr></thead><tbody>${list.map((e,i)=>examRow(e,T,i).replace("</td>",`</td><td style="text-align:left">${esc(S.students.get(e.studentId)?.name||"—")}</td>`)).join("")}</tbody></table></div>`:`<div class="empty"><h3>${T.label} kaydı yok</h3><p>Filtreyi değiştir ya da yeni bir deneme ekle.</p></div>`}</section>`}
+
+/* ---------- modallar ---------- */
+function openModal(html,cls=""){$("#modalRoot").innerHTML=`<div class="scrim" id="scrim"><div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div></div>`;setTimeout(()=>$("#modalRoot [autofocus]")?.focus(),30)}
+function closeModal(){$("#modalRoot").innerHTML=""}
+
+function examModal(ex,mode="edit"){
+  const s=S.students.get(ex?.studentId)||currentStudent();if(!s){toast("Önce bir öğrenci ekle.");return}
+  const editing=mode==="edit"&&!!ex;if(!ex)fitType(s);const st={id:editing?ex.id:uid(),studentId:s.id,type:ex?.type||UI.type,name:ex?.name||"",date:ex?ex.date||"":isoToday(),divisor:ex?ex.divisor:TYPES[ex?.type||UI.type].div,results:JSON.parse(JSON.stringify(ex?.results||{})),overrides:{...(ex?.overrides||{})},note:ex?.note||"",extra:ex?.extra||"",createdAt:editing?ex.createdAt||Date.now():Date.now()};
+  const body=()=>{const T=TYPES[st.type];return T.secs.map(sc=>`<div class="sec" data-sec="${sc.key}"><div class="sec-h"><span><i style="background:var(${sc.color})"></i>${sc.name}</span><span class="nt num" data-secnet="${sc.key}">— net</span></div>
+      <div class="srow h"><span>Ders</span><span style="text-align:center">Doğru</span><span style="text-align:center">Yanlış</span><span style="text-align:right">Net</span></div>
+      ${sc.subs.map(sb=>{const r=st.results[sb.key]||{};return `<div class="srow"><span>${sb.name}<small>${sb.max} soru</small></span><input inputmode="numeric" maxlength="2" id="c_${sb.key}" data-k="${sb.key}" data-f="c" data-max="${sb.max}" value="${isNum(r.c)?r.c:""}" placeholder="—" aria-label="${sb.name} doğru"><input inputmode="numeric" maxlength="2" id="w_${sb.key}" data-k="${sb.key}" data-f="w" data-max="${sb.max}" value="${isNum(r.w)?r.w:""}" placeholder="—" aria-label="${sb.name} yanlış"><span class="nn" data-subnet="${sb.key}">—</span></div>`}).join("")}
+      <div class="ovr-row"><label for="o_${sc.key}">Bölüm netini elle gir</label><input id="o_${sc.key}" data-ovr="${sc.key}" inputmode="decimal" value="${isNum(st.overrides[sc.key])?String(st.overrides[sc.key]).replace(".",","):""}" placeholder="otomatik"><span>Alt ders dağılımı yoksa kullan.</span></div></div>`).join("")};
+  openModal(`<div class="m-h"><div><h2>${mode==="import"?"Gelen sonucu kontrol et":mode==="submit"?"Sonuç gönder":editing?"Denemeyi düzenle":"Yeni deneme sonucu"}</h2><p>${mode==="import"?"Sayıları kontrol et, gerekirse düzelt ve kaydet.":mode==="submit"?`${esc(s.name)} için doğru ve yanlış sayılarını gir; mesaj olarak öğretmene gidecek.`:`${esc(s.name)} için doğru ve yanlış sayılarını gir.`}</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <form class="m-b" id="exForm" novalidate>
+      <div class="fields"><div class="fld"><label for="f_type">Sınav türü</label><select id="f_type">${[...new Set([...typesOf(s),st.type])].map(t=>`<option ${t===st.type?"selected":""}>${t}</option>`).join("")}</select></div>
+        <div class="fld"><label for="f_name">Deneme adı</label><input id="f_name" value="${esc(st.name)}" placeholder="Örn. Türkiye Geneli 1" autofocus></div>
+        <div class="fld"><label for="f_date">Tarih<small>isteğe bağlı</small></label><input type="date" id="f_date" value="${st.date}"></div>
+        <div class="fld"><label for="f_div">Net hesabı</label><select id="f_div">${[4,3,0].map(d=>`<option value="${d}" ${+st.divisor===d?"selected":""}>${DIV_LABEL[d]}</option>`).join("")}</select></div>
+        ${(editing||mode==="import")&&S.students.size>1?`<div class="fld"><label for="f_stu">Öğrenci</label><select id="f_stu">${studentsSorted().map(x=>`<option value="${x.id}" ${x.id===st.studentId?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>`:""}</div>
+      <div class="notice"><span>Sayı girmediğin alanlar boş kalır. Gerçek bir sıfır için <b>0</b> yaz.</span><button type="button" class="btn sm" id="fillZero">Boş alanları 0 ile tamamla</button></div>
+      <div class="secs" id="secs">${body()}</div>
+      <div class="fld"><label for="f_note">Deneme notu<small>isteğe bağlı</small></label><textarea id="f_note" placeholder="Örn. süre yetmedi, paragraf soruları zorladı">${esc(st.note)}</textarea></div>
+      <p class="err" id="f_err" hidden></p>
+    </form>
+    <div class="m-f"><span class="sum">Genel toplam <b class="num" id="f_total">—</b>net<br><small id="f_miss"></small></span><button class="btn quiet" data-act="close">Vazgeç</button><button class="btn primary" id="f_save">${mode==="submit"?"Mesajı hazırla":"✓ Sonucu kaydet"}</button></div>`);
+  const recalc=()=>{const T=TYPES[st.type];let bad=false;const probs=new Set();
+    document.querySelectorAll("#secs input[data-k]").forEach(inp=>{const k=inp.dataset.k;const r=st.results[k]||{};const max=+inp.dataset.max;const c=+r.c||0,w=+r.w||0;const b=(inp.value!==""&&!/^\d+$/.test(inp.value))||c+w>max;inp.classList.toggle("bad",b);if(b){bad=true;const nm=T.secs.flatMap(sc=>sc.subs).find(x=>x.key===k);probs.add(`${nm.name}: doğru + yanlış en fazla ${max}`)}});
+    const fe=$("#f_err");if(probs.size){fe.textContent=[...probs].join(" · ");fe.hidden=false}else if(fe.dataset.lim!=="0"){fe.hidden=true}
+    T.secs.forEach(sc=>{sc.subs.forEach(sb=>{const n=subNet(st.results[sb.key],st.divisor);const el=document.querySelector(`[data-subnet="${sb.key}"]`);if(el)el.textContent=fmt(n)});const el=document.querySelector(`[data-secnet="${sc.key}"]`);if(el)el.textContent=fmt(secNet(st,sc))+" net"+(isNum(st.overrides[sc.key])?" (elle)":"")});
+    const tmp={...st};$("#f_total").textContent=fmt(totalNet(tmp));$("#f_miss").textContent=missingSubs(tmp)?"Eksik ders alanları var":"Tüm ders alanları dolu";return !bad};
+  recalc();
+  const form=$("#exForm");
+  form.addEventListener("input",e=>{const t=e.target;
+    if(t.dataset.k){const r=st.results[t.dataset.k]||(st.results[t.dataset.k]={c:null,w:null});const v=t.value.trim();r[t.dataset.f]=v===""?null:(/^\d+$/.test(v)?+v:null);recalc()}
+    else if(t.dataset.ovr){const v=t.value.trim().replace(",",".");if(v===""||isNaN(+v))delete st.overrides[t.dataset.ovr];else st.overrides[t.dataset.ovr]=+v;recalc()}});
+  form.addEventListener("submit",e=>e.preventDefault());
+  $("#f_type").addEventListener("change",e=>{st.type=e.target.value;st.divisor=TYPES[st.type].div;$("#f_div").value=String(st.divisor);$("#secs").innerHTML=body();recalc()});
+  $("#f_div").addEventListener("change",e=>{st.divisor=+e.target.value;recalc()});
+  $("#fillZero").addEventListener("click",()=>{TYPES[st.type].secs.forEach(sc=>sc.subs.forEach(sb=>{const r=st.results[sb.key]||(st.results[sb.key]={c:null,w:null});if(!isNum(r.c))r.c=0;if(!isNum(r.w))r.w=0}));$("#secs").innerHTML=body();recalc()});
+  $("#f_save").addEventListener("click",async()=>{
+    st.name=$("#f_name").value.trim();st.date=$("#f_date").value;st.note=$("#f_note").value.trim();if($("#f_stu"))st.studentId=$("#f_stu").value;
+    const err=$("#f_err");
+    if(!st.name){err.textContent="Deneme adını yaz; tabloda bu adla görünecek.";err.hidden=false;$("#f_name").focus();return}
+    if(!recalc()){err.hidden=false;err.scrollIntoView({block:"nearest"});return}
+    const keys=new Set(TYPES[st.type].secs.flatMap(sc=>sc.subs.map(sb=>sb.key)));const results={};
+    for(const [k,v] of Object.entries(st.results))if(keys.has(k)&&(isNum(v?.c)||isNum(v?.w)))results[k]={c:isNum(v.c)?+v.c:null,w:isNum(v.w)?+v.w:null};
+    const secKeys=new Set(TYPES[st.type].secs.map(sc=>sc.key));const overrides={};for(const [k,v] of Object.entries(st.overrides))if(secKeys.has(k))overrides[k]=v;
+    const data={studentId:st.studentId,type:st.type,name:st.name,date:st.date||"",divisor:+st.divisor,results,overrides,note:st.note,extra:st.extra,createdAt:st.createdAt,updatedAt:Date.now()};
+    if(mode==="submit"){closeModal();shareModal(data,s.name);return}
+    closeModal();UI.type=st.type;UI.sid=st.studentId;persistUI();
+    try{await put("exams",st.id,data);toast(editing?"Deneme güncellendi.":"Deneme kaydedildi.")}catch{}});
+}
+
+function studentModal(s){
+  openModal(`<div class="m-h"><div><h2>${s?"Öğrenciyi düzenle":"Yeni öğrenci"}</h2><p>${s?"Bilgileri güncelle.":"Ad yeterli; sınıfı sonra da ekleyebilirsin."}</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <form class="m-b" id="stForm" novalidate><div class="fld"><label for="s_name">Ad soyad</label><input id="s_name" value="${esc(s?.name||"")}" placeholder="Örn. Ege F" autofocus></div>
+      <div class="fld"><label for="s_track">Hazırlandığı sınav</label><select id="s_track">${Object.entries(TRACKS).map(([k,v])=>`<option value="${k}" ${trackOf(s)===k?"selected":""}>${v.label}</option>`).join("")}</select></div>
+      <div class="fld"><label for="s_level">Sınıf<small>isteğe bağlı</small></label><input id="s_level" value="${esc(s?.level||"")}" placeholder="Örn. 12. sınıf veya 8. sınıf"></div>
+      <div class="fld"><label for="s_note">Not<small>isteğe bağlı</small></label><input id="s_note" value="${esc(s?.note||"")}" placeholder="Örn. hafta içi 2 deneme"></div><p class="err" id="s_err" hidden></p></form>
+    <div class="m-f"><span class="sum"></span><button class="btn quiet" data-act="close">Vazgeç</button><button class="btn primary" id="s_save">${s?"Kaydet":"Öğrenciyi ekle"}</button></div>`,"small");
+  const save=async()=>{const name=$("#s_name").value.trim();if(!name){$("#s_err").textContent="Öğrencinin adını yaz.";$("#s_err").hidden=false;return}
+    const id=s?.id||uid();const data={...(s||{}),name,track:$("#s_track").value,level:$("#s_level").value.trim(),note:$("#s_note").value.trim(),targets:s?.targets||{},createdAt:s?.createdAt||Date.now(),order:s?.order??S.students.size};delete data.id;
+    closeModal();if(!s||UI.sid===id){UI.sid=id;UI.type=TRACKS[data.track].types[0];persistUI()}try{await put("students",id,data);toast(s?"Öğrenci güncellendi.":`${name} eklendi.`)}catch{}};
+  $("#s_save").addEventListener("click",save);$("#stForm").addEventListener("submit",e=>{e.preventDefault();save()})}
+
+function targetModal(){const s=currentStudent();const cur=s.targets?.[UI.type];
+  openModal(`<div class="m-h"><div><h2>Net hedefi</h2><p>${esc(s.name)} · ${UI.type}. Grafikte kesikli çizgi olarak görünür.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+    <form class="m-b" id="tgForm" novalidate><div class="fld"><label for="t_val">Hedef genel net</label><input id="t_val" inputmode="decimal" value="${cur!=null?String(cur).replace(".",","):""}" placeholder="Örn. 90" autofocus></div><p class="err" id="t_err" hidden></p></form>
+    <div class="m-f"><span class="sum"></span>${cur!=null?`<button class="btn quiet" id="t_clear">Hedefi kaldır</button>`:""}<button class="btn primary" id="t_save">Hedefi kaydet</button></div>`,"small");
+  const go=async v=>{const targets={...(s.targets||{})};if(v==null)delete targets[UI.type];else targets[UI.type]=v;closeModal();const {id,...rest}=s;try{await put("students",s.id,{...rest,targets});toast(v==null?"Hedef kaldırıldı.":"Hedef kaydedildi.")}catch{}};
+  $("#t_save").addEventListener("click",()=>{const v=+$("#t_val").value.replace(",",".");if(!$("#t_val").value.trim()||isNaN(v)||v<=0){$("#t_err").textContent="Sıfırdan büyük bir net yaz.";$("#t_err").hidden=false;return}go(v)});
+  $("#t_clear")?.addEventListener("click",()=>go(null));$("#tgForm").addEventListener("submit",e=>{e.preventDefault();$("#t_save").click()})}
+
+function helpModal(){openModal(`<div class="m-h"><div><h2>Nasıl kullanılır?</h2><p>Dört adımda takip.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+  <div class="m-b help"><ol><li><b>Öğrenci ekle.</b> Kenar çubuğundaki + düğmesi ya da Öğrenciler sayfası.</li><li><b>Sınav türünü seç.</b> LGS, TYT ve AYT ayrı takip edilir; net hesabı türe göre otomatik gelir, istersen değiştirebilirsin.</li><li><b>Deneme ekle.</b> Her alt ders için doğru ve yanlış gir. Yalnızca bölüm toplamın varsa “Bölüm netini elle gir” alanını kullan.</li><li><b>Gelişimi izle.</b> Grafik, ders ortalamaları ve sınıf özeti kendiliğinden güncellenir. Excel ve yedek dosyaları Veri ve Excel menüsünde.</li></ol></div>
+  <div class="m-f"><span class="sum"></span><button class="btn primary" data-act="close">Tamam</button></div>`,"small")}
+
+/* ---------- dışa aktarma ---------- */
+async function saveFile(filename,data){if(!dl&&window.NA_STATIC){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data]));a.download=filename;document.body.appendChild(a);a.click();a.remove();return}if(!dl){toast("Bu görünümde dosya indirilemiyor.");return}try{await dl.save({filename,data});toast("Dosya hazır.")}catch(e){if(e?.code!=="declined"&&e?.code!=="cancelled")toast("Dosya kaydedilmedi.")}}
+function rowsFor(list,T,withStudent){const head=[...(withStudent?["Öğrenci"]:[]),"Deneme","Tarih","Net hesabı"];T.secs.forEach(sc=>sc.subs.forEach(sb=>head.push(`${sb.name} D`,`${sb.name} Y`,`${sb.name} Net`)));T.secs.forEach(sc=>head.push(`${sc.name} net`));head.push("Genel net","Not");
+  const rows=chrono(list).map(e=>{const r=[...(withStudent?[S.students.get(e.studentId)?.name||""]:[]),e.name,e.date||"",DIV_LABEL[e.divisor]||""];T.secs.forEach(sc=>sc.subs.forEach(sb=>{const x=e.results?.[sb.key];const n=subNet(x,e.divisor);r.push(x?.c??"",x?.w??"",n==null?"":r2(n))}));T.secs.forEach(sc=>{const n=secNet(e,sc);r.push(n==null?"":r2(n))});const t=totalNet(e);r.push(t==null?"":r2(t),e.note||"");return r});
+  return [head,...rows]}
+function exportCSV(){const s=currentStudent();if(!s)return;const T=TYPES[UI.view==="table"?UI.tType:UI.type];
+  const list=UI.view==="table"?[...S.exams.values()].filter(e=>e.type===T.label&&(UI.tStudent==="all"||e.studentId===UI.tStudent)):examsOf(s.id,T.label);
+  const rows=rowsFor(list,T,UI.view==="table");const csv="﻿"+rows.map(r=>r.map(v=>{const x=typeof v==="number"?String(v).replace(".",","):String(v);return /[;"\n]/.test(x)?`"${x.replace(/"/g,'""')}"`:x}).join(";")).join("\r\n");
+  saveFile(`${UI.view==="table"?"tum-ogrenciler":s.name.replace(/\s+/g,"-")}-${T.label}.csv`,csv)}
+function exportXLSX(){if(!window.XLSX){toast("Excel kitaplığı yüklenemedi; CSV indirmeyi dene.");return}const wb=XLSX.utils.book_new();let any=false;
+  for(const t of Object.keys(TYPES)){const list=[...S.exams.values()].filter(e=>e.type===t);if(!list.length)continue;any=true;
+    const sorted=studentsSorted().flatMap(s=>chrono(list.filter(e=>e.studentId===s.id)));XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rowsFor(sorted,TYPES[t],true).map((r,i)=>i?r:r)),t)}
+  const ov=[["Öğrenci","Sınıf","Sınav","Deneme sayısı","Son net","Ortalama","En yüksek"]];studentsSorted().forEach(s=>Object.keys(TYPES).forEach(t=>{const sm=summary(examsOf(s.id,t));if(sm)ov.push([s.name,s.level||"",t,sm.n,r2(sm.last),r2(sm.avg),r2(sm.bestNet)])}));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ov),"Özet");
+  if(!any){toast("Dışa aktarılacak deneme yok.");return}
+  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});saveFile(`net-atlasi-${isoToday()}.xlsx`,new Uint8Array(out))}
+function exportBackup(){const data={app:"net-atlasi",version:1,exportedAt:new Date().toISOString(),students:[...S.students.values()],exams:[...S.exams.values()]};saveFile(`net-atlasi-yedek-${isoToday()}.json`,JSON.stringify(data,null,1))}
+async function restore(file){try{const d=JSON.parse(await file.text());if(!Array.isArray(d.students)||!Array.isArray(d.exams))throw 0;
+    let n=0;for(const s of d.students){const {id,...rest}=s;if(id&&rest.name){await put("students",id,rest);n++}}for(const e of d.exams){const {id,...rest}=e;if(id&&rest.studentId&&TYPES[rest.type]){await put("exams",id,rest);n++}}toast(`${n} kayıt geri yüklendi.`)}
+  catch{toast("Bu dosya bir Net Atlası yedeği değil.")}}
+
+/* ---------- olaylar ---------- */
+function persistUI(){ls.set("na-view",UI.view);ls.set("na-sid",UI.sid);ls.set("na-type",UI.type);ls.set("na-sort",UI.sort);ls.set("na-ttype",UI.tType)}
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600)}
+function go(view){UI.view=view;UI.confirm=null;UI.menu=null;persistUI();$("#side").classList.remove("open");window.scrollTo(0,0);render()}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button,[data-act]");
+  if(!e.target.closest(".menu-wrap")){if(!$("#dataMenu").hidden){$("#dataMenu").hidden=true;$("#dataBtn").setAttribute("aria-expanded","false")}if(UI.menu&&!b?.dataset.act){UI.menu=null;UI.confirm=null;render()}}
+  if(e.target.id==="scrim"){closeModal();return}
+  if(!b)return;
+  if(b.dataset.view)return go(b.dataset.view);
+  if(b.id==="copyCode"){const t=$("#myCode").textContent;navigator.clipboard?.writeText(t).then(()=>toast("Kod kopyalandı.")).catch(()=>{getSelection().selectAllChildren($("#myCode"));toast("Kodu seçtim; kopyalayıp gönder.")});return}
+  if(b.dataset.sid){UI.sid=b.dataset.sid;UI.q="";fitType(S.students.get(UI.sid));persistUI();go("overview");return}
+  if(b.dataset.type&&!b.dataset.act){UI.type=b.dataset.type;persistUI();render();return}
+  if(b.dataset.ttype){UI.tType=b.dataset.ttype;persistUI();render();return}
+  if(b.dataset.series){UI.series[b.dataset.series]=!UI.series[b.dataset.series];if(!Object.values(UI.series).some(Boolean))UI.series.total=true;render();return}
+  if(b.dataset.dyn){UI.dyn=b.dataset.dyn==="1";render();return}
+  const id=b.dataset.id;
+  switch(b.dataset.act){
+    case "add-exam":return examModal(null);
+    case "edit-exam":return examModal(S.exams.get(id));
+    case "del-exam":UI.confirm=id;return render();
+    case "del-exam-yes":UI.confirm=null;return del("exams",id).then(()=>toast("Deneme silindi.")).catch(()=>{});
+    case "cancel":UI.confirm=null;return render();
+    case "add-student":return studentModal(null);
+    case "edit-student":UI.menu=null;return studentModal(S.students.get(id));
+    case "smenu":UI.menu=UI.menu===id?null:id;UI.confirm=null;return render();
+    case "del-student":UI.confirm=id;return render();
+    case "del-student-yes":{UI.menu=null;UI.confirm=null;const ex=examsOf(id);(async()=>{try{for(const x of ex)await del("exams",x.id);await del("students",id);if(UI.sid===id)UI.sid=null;toast("Öğrenci ve denemeleri silindi.");render()}catch{}})();return}
+    case "open-student":UI.sid=id;UI.type=b.dataset.type||primaryType(id);fitType(S.students.get(id));persistUI();return go("overview");
+    case "target":return targetModal();
+    case "access":return accessModal();
+    case "import":return importModal();
+    case "github":$("#dataMenu").hidden=true;return githubModal();
+    case "logout":ls.set("na-login",null);S.mode="login";S.students.clear();S.exams.clear();render();return;
+    case "submit-exam":return examModal(null,"submit");
+    case "close":return closeModal();
+    case "csv":$("#dataMenu").hidden=true;return exportCSV();
+    case "xlsx":$("#dataMenu").hidden=true;return exportXLSX();
+    case "backup":$("#dataMenu").hidden=true;return exportBackup();
+  }
+});
+$("#dataBtn").addEventListener("click",()=>{const m=$("#dataMenu");m.hidden=!m.hidden;$("#dataBtn").setAttribute("aria-expanded",String(!m.hidden))});
+$("#restoreFile").addEventListener("change",e=>{const f=e.target.files[0];$("#dataMenu").hidden=true;if(f)restore(f);e.target.value=""});
+$("#addStudentSide").addEventListener("click",()=>studentModal(null));
+$("#helpBtn").addEventListener("click",helpModal);
+$("#menuBtn").addEventListener("click",()=>$("#side").classList.toggle("open"));
+$("#sq").addEventListener("input",e=>{UI.sq=e.target.value;renderSide()});
+document.addEventListener("input",e=>{const t=e.target;
+  const keep=(fn)=>{const pos=t.selectionStart;fn();render();const n=document.getElementById(t.id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch{}}};
+  if(t.id==="eq")keep(()=>UI.q=t.value);else if(t.id==="tq")keep(()=>UI.tq=t.value);else if(t.id==="sq2")keep(()=>{UI.sq=t.value;$("#sq").value=t.value})});
+document.addEventListener("change",e=>{const t=e.target;
+  if(t.id==="pickStudent"){UI.sid=t.value;fitType(S.students.get(UI.sid));persistUI();render()}
+  else if(t.id==="sortSel"){UI.sort=t.value;persistUI();render()}
+  else if(t.id==="tStud"){UI.tStudent=t.value;render()}});
+document.addEventListener("submit",e=>{if(e.target.id==="lgForm"){e.preventDefault();const b=$("#lg_go");b.disabled=true;b.textContent="Açılıyor…";tryLogin($("#lg_user").value,$("#lg_pass").value,$("#lg_who").value,false).finally(()=>{const x=$("#lg_go");if(x){x.disabled=false;x.textContent="Giriş yap"}})}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if($("#modalRoot").innerHTML)closeModal();else{$("#dataMenu").hidden=true;$("#side").classList.remove("open")}}});
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(drawChart,120)});
+window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change",drawChart);
+boot();
+</script>
+
+</body></html>
