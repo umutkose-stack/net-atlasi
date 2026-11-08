@@ -548,7 +548,7 @@ async function tryLogin(u,p,who,silent){const err=$("#lg_err");
 function viewLogin(){
   if(!SITE_DATA)return `<div class="card pad login"><div class="eyebrow">Net Atlası</div><h1>Sonuçlar yüklenemedi</h1><p class="lede">İnternet bağlantını kontrol edip sayfayı yenile.</p></div>`;
   return `<form class="card pad login" id="lgForm" novalidate><div class="eyebrow">Net Atlası · öğrenci ve veli girişi</div><h1>Deneme sonuçlarına bak</h1><p class="lede">Öğretmeninden aldığın kullanıcı adı ve şifreyle gir.</p>
-    <div class="fld"><label for="lg_user">Kullanıcı adı</label><input id="lg_user" autocomplete="username" autocapitalize="none" placeholder="Örn. bulut-y" autofocus></div>
+    <div class="fld"><label for="lg_user">Kullanıcı adı</label><input id="lg_user" autocomplete="username" autocapitalize="none" placeholder="Örn. umut-k" autofocus></div>
     <div class="fld"><label for="lg_pass">Şifre</label><input id="lg_pass" type="password" autocomplete="current-password" placeholder="Örn. abcd-1234"></div>
     <div class="fld"><label for="lg_who">Giriş yapan</label><select id="lg_who"><option>Öğrenci</option><option>Veli</option></select></div>
     <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="lg_rem" checked> Bu cihazda beni hatırla</label>
