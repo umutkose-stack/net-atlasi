@@ -593,7 +593,7 @@ function shareModal(data,sname){
   T.secs.forEach(sc=>{const parts=sc.subs.map(sb=>{const r=data.results[sb.key];return r?`${sc.subs.length>1?sb.name+" ":""}${r.c??"-"}D ${r.w??"-"}Y`:null}).filter(Boolean);const n=secNet(data,sc);if(n!=null)lines.push(`${sc.name}: ${parts.join(", ")}${isNum(data.overrides?.[sc.key])?" (bölüm neti elle)":""} → ${fmt(n)} net`)});
   if(data.keyId){const k=(S.keyMeta||[]).find(x=>x.id===data.keyId)||S.keys.get(data.keyId);lines.push(`İşaretlenen şıklar (${k?.name||"cevap anahtarı"}):`);Object.entries(data.answers||{}).forEach(([sub,a])=>lines.push(`${subLabel(data.type,sub)}: ${a.match(/.{1,5}/g).join(" ")}`));if(!Object.keys(data.results||{}).length)lines.push("Netler öğretmenin cevap anahtarıyla hesaplanacak.")}
   if(data.topics?.length&&!data.keyId)lines.push(`Konu tablosu: ${data.topics.length} konu (${[...new Set(data.topics.map(r=>subLabel(data.type,r.s)))].join(", ")})`);
-  if(totalNet(data)!=null)lines.push(`Genel net: ${fmt(totalNet(data))}`);if(data.note)lines.push(`Not: ${data.note}`);
+  if(totalNet(data)!=null)lines.push(`Genel net${data.keyId?" (şıkları yazılan dersler hariç)":""}: ${fmt(totalNet(data))}`);if(data.note)lines.push(`Not: ${data.note}`);
   const pay={v:1,s:data.studentId,n:sname,t:data.type,a:data.name,d:data.date,k:data.divisor,r:data.results,o:data.overrides,m:data.note,by:WHO};if(data.topics&&!data.keyId)pay.tp=data.topics;if(data.keyId){pay.ky=data.keyId;pay.an=data.answers}
   lines.push("",`#NA1:${b64e(JSON.stringify(pay))}`);const text=lines.join("\n");
   openModal(`<div class="m-h"><div><h2>Sonuç hazır</h2><p>Bu mesajı öğretmene gönder. Öğretmen kontrol edip kaydettiğinde sonuç sayfaya eklenir.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
@@ -839,11 +839,11 @@ function examModal(ex,mode="edit"){
   const editing=mode==="edit"&&!!ex;if(!ex)fitType(s);const st={id:editing?ex.id:uid(),studentId:s.id,type:ex?.type||UI.type,name:ex?.name||"",date:ex?ex.date||"":isoToday(),divisor:ex?ex.divisor:TYPES[ex?.type||UI.type].div,results:JSON.parse(JSON.stringify(ex?.results||{})),overrides:{...(ex?.overrides||{})},note:ex?.note||"",extra:ex?.extra||"",createdAt:editing?ex.createdAt||Date.now():Date.now(),
     tmode:ex?.keyId?"key":(ex?.topics?.length?"table":"none"),keyId:ex?.keyId||"",answers:{...(ex?.answers||{})},rows:(ex?.keyId?[]:(ex?.topics||[])).map(r=>({s:r.s,t:r.t,q:r.q,c:r.c,w:r.w}))};
   const curKey=()=>st.tmode==="key"&&st.keyId?(ro?(S.keyMeta||[]).find(k=>k.id===st.keyId):S.keys.get(st.keyId)):null;
-  const keyLocked=sub=>{const k=curKey();if(!k||ro)return false;const n=keyCounts(k)[sub];return !!n&&normAns(st.answers[sub]).length===n};
+  const keyLocked=sub=>{const k=curKey();if(!k)return false;const n=keyCounts(k)[sub];return !!n&&normAns(st.answers[sub]).length===n};
   const applyKey=()=>{const k=curKey();if(!k||ro||!k.subs)return;const r=computeFromKey(k,st.answers);Object.assign(st.results,r.results)};
   const body=()=>{const T=TYPES[st.type];return T.secs.map(sc=>`<div class="sec" data-sec="${sc.key}"><div class="sec-h"><span><i style="background:var(${sc.color})"></i>${sc.name}</span><span class="nt num" data-secnet="${sc.key}">— net</span></div>
       <div class="srow h"><span>Ders</span><span style="text-align:center">Doğru</span><span style="text-align:center">Yanlış</span><span style="text-align:right">Net</span></div>
-      ${sc.subs.map(sb=>{const r=st.results[sb.key]||{};const lk=keyLocked(sb.key)?` readonly title="Cevap anahtarından hesaplandı"`:"";return `<div class="srow"><span>${sb.name}<small>${keyLocked(sb.key)?"anahtardan":sb.max+" soru"}</small></span><input inputmode="numeric" maxlength="2" id="c_${sb.key}" data-k="${sb.key}" data-f="c" data-max="${sb.max}" value="${isNum(r.c)?r.c:""}" placeholder="—" aria-label="${sb.name} doğru"${lk}><input inputmode="numeric" maxlength="2" id="w_${sb.key}" data-k="${sb.key}" data-f="w" data-max="${sb.max}" value="${isNum(r.w)?r.w:""}" placeholder="—" aria-label="${sb.name} yanlış"${lk}><span class="nn" data-subnet="${sb.key}">—</span></div>`}).join("")}
+      ${sc.subs.map(sb=>{const r=st.results[sb.key]||{};const L=keyLocked(sb.key);const lk=L?` readonly title="Cevap anahtarından hesaplanır"`:"";const hideV=L&&ro;return `<div class="srow"><span>${sb.name}<small>${L?"şıklardan hesaplanır":sb.max+" soru"}</small></span><input inputmode="numeric" maxlength="2" id="c_${sb.key}" data-k="${sb.key}" data-f="c" data-max="${sb.max}" value="${!hideV&&isNum(r.c)?r.c:""}" placeholder="—" aria-label="${sb.name} doğru"${lk}><input inputmode="numeric" maxlength="2" id="w_${sb.key}" data-k="${sb.key}" data-f="w" data-max="${sb.max}" value="${!hideV&&isNum(r.w)?r.w:""}" placeholder="${hideV?"✓":"—"}" aria-label="${sb.name} yanlış"${lk}><span class="nn" data-subnet="${sb.key}">—</span></div>`}).join("")}
       <div class="ovr-row"><label for="o_${sc.key}">Bölüm netini elle gir</label><input id="o_${sc.key}" data-ovr="${sc.key}" inputmode="decimal" value="${isNum(st.overrides[sc.key])?String(st.overrides[sc.key]).replace(".",","):""}" placeholder="otomatik"><span>Alt ders dağılımı yoksa kullan.</span></div></div>`).join("")};
   const tpRowsOf=sub=>st.rows.map((r,i)=>({r,i})).filter(x=>x.r.s===sub);
   const tpHtml=()=>{const T=TYPES[st.type];
@@ -862,7 +862,7 @@ function examModal(ex,mode="edit"){
       if(!list.length)inner=`<p class="tp-note">${st.type} için henüz cevap anahtarı yok. ${ro?"Öğretmenin anahtarı ekleyince bu seçenek açılır; şimdilik <b>Konu tablosu</b>nu kullanabilirsin.":`<button type="button" class="linkish" data-act="add-key">Cevap anahtarı oluştur</button>`}</p>`;
       else{const k=curKey();const cnt=k?keyCounts(k):{};const letters=optsOf(st.type);
         inner=`<div class="fld"><label for="f_key">Cevap anahtarı</label><select id="f_key"><option value="">— deneme seç —</option>${list.map(x=>`<option value="${x.id}" ${x.id===st.keyId?"selected":""}>${esc(x.name)}${x.date?" · "+fdate(x.date):""}</option>`).join("")}</select></div>`+
-        (k?`<p class="tp-note">Her ders için işaretlenen şıkları sırayla yaz (${letters.split("").join(", ")}); boş bırakılan soru için <b>-</b> yaz. Boşluklar yok sayılır.${ro?" Doğru ve yanlış sayıların öğretmenin anahtarıyla hesaplanacak.":""}</p><div class="ans-grid">${subList(st.type).filter(({sb})=>cnt[sb.key]).map(({sb})=>`<div class="ans-row"><label for="an_${sb.key}">${esc(subLabel(st.type,sb.key))}<small>${cnt[sb.key]} soru</small></label><input id="an_${sb.key}" data-an="${sb.key}" value="${esc(st.answers[sb.key]||"")}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${letters}${letters}-…"><span class="an-info num" data-aninfo="${sb.key}"></span></div>`).join("")}</div>`:"")}}
+        (k?`<p class="tp-note">Yalnızca istediğin derslerin şıklarını yazman yeterli; diğer dersleri boş bırakabilir ya da aşağıda doğru/yanlış olarak girebilirsin. Şıkları sırayla yaz (${letters.split("").join(", ")}), boş soru için <b>-</b>. Boşluklar yok sayılır.</p><div class="ans-grid">${subList(st.type).filter(({sb})=>cnt[sb.key]).map(({sb})=>`<div class="ans-row"><label for="an_${sb.key}">${esc(subLabel(st.type,sb.key))}<small>${cnt[sb.key]} soru</small></label><input id="an_${sb.key}" data-an="${sb.key}" value="${esc(st.answers[sb.key]||"")}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${letters}${letters}-…"><span class="an-info num" data-aninfo="${sb.key}"></span></div>`).join("")}</div>`:"")}}
     return `<div class="tp-head"><div><b>Konu analizi</b><small>İsteğe bağlı. Hangi konuda yanlış yapıldığını gösterir.</small></div>${seg}</div>${inner}`};
   openModal(`<div class="m-h"><div><h2>${mode==="import"?"Gelen sonucu kontrol et":mode==="submit"?"Sonuç gönder":editing?"Denemeyi düzenle":"Yeni deneme sonucu"}</h2><p>${mode==="import"?"Sayıları kontrol et, gerekirse düzelt ve kaydet.":mode==="submit"?`${esc(s.name)} için doğru ve yanlış sayılarını gir; mesaj olarak öğretmene gidecek.`:`${esc(s.name)} için doğru ve yanlış sayılarını gir.`}</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
     <form class="m-b" id="exForm" novalidate>
@@ -878,13 +878,13 @@ function examModal(ex,mode="edit"){
       <p class="err" id="f_err" hidden></p>
     </form>
     <div class="m-f"><span class="sum">Genel toplam <b class="num" id="f_total">—</b>net<br><small id="f_miss"></small></span><button class="btn quiet" data-act="close">Vazgeç</button><button class="btn primary" id="f_save">${mode==="submit"?"Mesajı hazırla":"✓ Sonucu kaydet"}</button></div>`);
-  const roKey=()=>ro&&st.tmode==="key"&&!!curKey();
-  const syncWrap=()=>{$("#secWrap").hidden=roKey()};
+  const roKey=()=>ro&&st.tmode==="key"&&!!curKey()&&subList(st.type).some(({sb})=>keyLocked(sb.key));
+  const syncWrap=()=>{};
   const recalc=()=>{const T=TYPES[st.type];let bad=false;const probs=new Set();
     document.querySelectorAll("#secs input[data-k]").forEach(inp=>{const k=inp.dataset.k;const r=st.results[k]||{};const max=+inp.dataset.max;const c=+r.c||0,w=+r.w||0;const b=(inp.value!==""&&!/^\d+$/.test(inp.value))||c+w>max;inp.classList.toggle("bad",b);if(b){bad=true;const nm=T.secs.flatMap(sc=>sc.subs).find(x=>x.key===k);probs.add(`${nm.name}: doğru + yanlış en fazla ${max}`)}});
     const fe=$("#f_err");if(probs.size){fe.textContent=[...probs].join(" · ");fe.hidden=false}else fe.hidden=true;
     T.secs.forEach(sc=>{sc.subs.forEach(sb=>{const n=subNet(st.results[sb.key],st.divisor);const el=document.querySelector(`[data-subnet="${sb.key}"]`);if(el)el.textContent=fmt(n)});const el=document.querySelector(`[data-secnet="${sc.key}"]`);if(el)el.textContent=fmt(secNet(st,sc))+" net"+(isNum(st.overrides[sc.key])?" (elle)":"")});
-    const tmp={...st};$("#f_total").textContent=roKey()?"anahtarla":fmt(totalNet(tmp));$("#f_miss").textContent=roKey()?"Netleri öğretmen hesaplayacak":missingSubs(tmp)?"Eksik ders alanları var":"Tüm ders alanları dolu";return !bad};
+    const tmp={...st};$("#f_total").textContent=fmt(totalNet(roKey()?{...st,results:Object.fromEntries(Object.entries(st.results).filter(([k])=>!keyLocked(k)))}:tmp));$("#f_miss").textContent=roKey()?"Şıkları yazılan dersleri öğretmen hesaplayacak":missingSubs(tmp)?"Eksik ders alanları var":"Tüm ders alanları dolu";return !bad};
   const tpRecalc=()=>{
     if(st.tmode==="table")for(const {sb} of subList(st.type)){const rows=tpRowsOf(sb.key);let q=0,c=0,w=0;
       rows.forEach(({r,i})=>{q+=+r.q||0;c+=+r.c||0;w+=+r.w||0;const el=document.querySelector(`[data-trnet="${i}"]`);if(el)el.textContent=isNum(r.c)||isNum(r.w)?fmt((+r.c||0)-(st.divisor?(+r.w||0)/st.divisor:0)):"—";
@@ -902,7 +902,7 @@ function examModal(ex,mode="edit"){
     if(t.dataset.k){const r=st.results[t.dataset.k]||(st.results[t.dataset.k]={c:null,w:null});const v=t.value.trim();r[t.dataset.f]=v===""?null:(/^\d+$/.test(v)?+v:null);recalc()}
     else if(t.dataset.ovr){const v=t.value.trim().replace(",",".");if(v===""||isNaN(+v))delete st.overrides[t.dataset.ovr];else st.overrides[t.dataset.ovr]=+v;recalc()}
     else if(t.dataset.tr){const r=st.rows[+t.dataset.tr];const f=t.dataset.tf;if(f==="t")r.t=t.value;else{const v=t.value.trim();r[f]=v===""?null:(/^\d+$/.test(v)?+v:NaN)}tpRecalc()}
-    else if(t.dataset.an){st.answers[t.dataset.an]=t.value;const was=keyLocked(t.dataset.an);applyKey();if(!ro&&(was||keyLocked(t.dataset.an)))reSecs();tpRecalc();if(!ro){const inp=document.getElementById(t.id);if(inp!==t){}}}});
+    else if(t.dataset.an){st.answers[t.dataset.an]=t.value;const was=keyLocked(t.dataset.an);applyKey();if(was||keyLocked(t.dataset.an))reSecs();tpRecalc();if(!ro){const inp=document.getElementById(t.id);if(inp!==t){}}}});
   form.addEventListener("change",e=>{const t=e.target;if(t.id==="f_key"){st.keyId=t.value;const k=curKey();if(k){const nm=$("#f_name");if(!nm.value.trim())nm.value=k.name;const dt=$("#f_date");if(k.date&&(!dt.value||dt.value===isoToday()))dt.value=k.date}reTp();applyKey();reSecs()}});
   form.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!b.closest("#tp"))return;
     if(b.dataset.tm){st.tmode=b.dataset.tm;reTp();if(st.tmode==="key")applyKey();reSecs();return}
@@ -936,6 +936,7 @@ function examModal(ex,mode="edit"){
       if(probs.length){fail(probs.join(" · "));return}
       if(!Object.keys(answers).length){fail("En az bir dersin işaretlenen şıklarını yaz ya da Konu analizi'ni Yok yap.");return}
       keyId=st.keyId;
+      if(ro)for(const sub of Object.keys(answers))delete st.results[sub];
       if(!ro&&k.subs){const r=computeFromKey(k,answers);Object.assign(st.results,r.results);topics=r.topics;qres=r.qres;
         for(const sc of TYPES[st.type].secs)if(sc.subs.some(sb=>answers[sb.key]))delete st.overrides[sc.key]}}
     if(!recalc()){err.hidden=false;err.scrollIntoView({block:"nearest"});return}
