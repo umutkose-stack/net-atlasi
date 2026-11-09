@@ -359,6 +359,7 @@ table.qa tr.q-no td{background:color-mix(in srgb,var(--down-soft) 45%,transparen
 .ro-only{display:none!important}
 .static-only{display:none!important}
 .static .static-only{display:inline-flex!important}
+.adm [data-act=add-exam],.adm [data-act=edit-exam],.adm [data-act=del-exam],.adm [data-act=add-student],.adm [data-act=edit-student],.adm [data-act=del-student],.adm [data-act=smenu],.adm [data-act=add-key],.adm [data-act=edit-key],.adm [data-act=del-key],.adm [data-act=import],.adm [data-act=access],.adm [data-act=target],.adm [data-act=github],.adm [data-act=backup],.adm label[for=restoreFile],.adm #addStudentSide,.adm #helpBtn,.adm #dataMenu hr{display:none!important}
 .cred-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .cred-row .who2{font-weight:600}
 .cred-row code{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
@@ -485,18 +486,20 @@ function chrono(list){return sortExams(list,"asc")}
 const S={students:new Map(),exams:new Map(),keys:new Map(),keyMeta:[],ready:false,mode:"loading"};
 const MAPS=c=>c==="students"?S.students:c==="keys"?S.keys:S.exams;
 const UI={view:ls.get("na-view","overview"),sid:ls.get("na-sid",null),type:ls.get("na-type","TYT"),sort:ls.get("na-sort","asc"),dyn:false,q:"",sq:"",series:{total:true},tq:"",tStudent:"all",tType:ls.get("na-ttype","TYT"),ktype:ls.get("na-ktype","TYT"),ksub:"all",kkey:null,kExam:"all",confirm:null,menu:null};
-let db=null,dl=null,user=null,ROLE="teacher",ME=null,WHO="Öğrenci";
+let db=null,dl=null,user=null,ROLE="teacher",ME=null,WHO="Öğrenci",ADMIN=false,ADMIN_CRED=null,adminLoaded=false;
+const RO_MSG="Yönetici görünümü salt okunur. Değişiklikleri claude.ai'daki Net Atlası panelinde yap.";
+const WR_ACTS=new Set(["add-exam","edit-exam","del-exam","del-exam-yes","add-student","edit-student","smenu","del-student","del-student-yes","add-key","edit-key","del-key","del-key-yes","target","access","import","github","backup","submit-exam"]);
 const PORTAL=new Map();let portalLoaded=false,syncT=null;
 
 /* ---------- depo ---------- */
 const LOCAL="na-local-v1";
 function localLoad(){const d=ls.get(LOCAL,{students:{},exams:{},keys:{}});S.students=new Map(Object.entries(d.students||{}));S.exams=new Map(Object.entries(d.exams||{}));S.keys=new Map(Object.entries(d.keys||{}))}
 function localSave(){ls.set(LOCAL,{students:Object.fromEntries(S.students),exams:Object.fromEntries(S.exams),keys:Object.fromEntries(S.keys)})}
-async function put(coll,id,data){
+async function put(coll,id,data){if(ADMIN){toast(RO_MSG);throw new Error("ro")}
   const m=MAPS(coll);m.set(id,{...data,id});render();
   if(db){try{const body={...data};delete body.id;await db.collection(coll).doc(id).set(body)}catch(e){handleWriteErr(e);throw e}}
   else localSave()}
-async function del(coll,id){
+async function del(coll,id){if(ADMIN){toast(RO_MSG);throw new Error("ro")}
   MAPS(coll).delete(id);render();
   if(db){try{await db.collection(coll).doc(id).delete()}catch(e){handleWriteErr(e);throw e}}else localSave()}
 function handleWriteErr(e){toast(e?.code==="quota_exceeded"?"Kayıt alanı doldu. Eski denemeleri silip yeniden dene.":e?.code==="invalid_argument"?"Bu sayfada değişiklik yapma iznin yok.":"Kaydedilemedi. Bağlantını kontrol edip tekrar dene.")}
@@ -527,7 +530,8 @@ async function boot(){
       render()},
     err=>{clearTimeout(timer);S.ready=true;setSave("warn");toast("Kayıtlara ulaşılamadı.");render()});
   sub("students",S.students);sub("exams",S.exams);
-  db.collection("keys").onSnapshot(snap=>{S.keys.clear();snap.docs.forEach(d=>S.keys.set(d.id,{...d.data(),id:d.id}));render();scheduleSync()},()=>{})}
+  db.collection("keys").onSnapshot(snap=>{S.keys.clear();snap.docs.forEach(d=>S.keys.set(d.id,{...d.data(),id:d.id}));render();scheduleSync()},()=>{});
+  db.doc("settings/admin").onSnapshot(d=>{if(!d.metadata?.fromCache||d.exists){ADMIN_CRED=d.exists?d.data():null;adminLoaded=true}},()=>{adminLoaded=true})}
 
 /* ---------- öğrenci erişimi ---------- */
 const CODE_RE=/^[A-Za-z0-9_\-.~:@+]{4,200}$/;
@@ -627,26 +631,33 @@ const slugify=n=>normUser(n).replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ı/g
 function newPass(){const a="abcdefghjkmnpqrstuvwxyz23456789";const r=crypto.getRandomValues(new Uint8Array(8));const p=[...r].map(x=>a[x%a.length]).join("");return p.slice(0,4)+"-"+p.slice(4)}
 function credText(s,site){return `Net Atlası öğrenci sayfası\n${site}\nKullanıcı adı: ${s.gh.user}\nŞifre: ${s.gh.pass}\n(Öğrenci ve veli aynı bilgilerle girer.)`}
 async function setGh(s,gh){const {id,...rest}=s;await put("students",s.id,{...rest,gh})}
+function adminCred(){return db?ADMIN_CRED:ls.get("na-admin",null)}
+async function setAdminCred(c){if(db){ADMIN_CRED=c;await db.collection("settings").doc("admin").set(c)}else ls.set("na-admin",c)}
 function githubModal(){
   const site=ls.get("na-site",SITE_DEFAULT);
+  const ac=adminCred();if(!ac&&(!db||adminLoaded)){setAdminCred({user:"yonetici",pass:newPass()}).then(()=>{if($("#gh_dl"))githubModal()}).catch(()=>{})}
+  const admRow=`<div class="cred-row" style="background:var(--ink-soft);border-color:transparent"><span class="badge on">Sen</span><div style="min-width:0"><div class="who2">Yönetici girişi <span class="badge">tüm öğrenciler</span></div><code>${ac?`kullanıcı: ${esc(ac.user)} · şifre: ${esc(ac.pass)}`:"hazırlanıyor…"}</code></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${ac?`<button type="button" class="btn sm" data-admcopy="1">Kopyala</button><button type="button" class="btn quiet sm" data-admnew="1">Yeni şifre</button>`:""}</div></div>`;
   const rows=studentsSorted().map(s=>{const g=s.gh;return `<div class="cred-row"><input type="checkbox" id="gh_${s.id}" data-ghon="${s.id}" ${g?.on?"checked":""} aria-label="${esc(s.name)} siteye dahil"><div style="min-width:0"><div class="who2">${esc(s.name)} <span class="badge">${trackOf(s)}</span></div>${g?.on?`<code>kullanıcı: ${esc(g.user)} · şifre: ${esc(g.pass)}</code>`:`<code>siteye dahil değil</code>`}</div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${g?.on?`<button type="button" class="btn sm" data-ghcopy="${s.id}">Kopyala</button><button type="button" class="btn quiet sm" data-ghnew="${s.id}">Yeni şifre</button>`:""}</div></div>`}).join("");
-  openModal(`<div class="m-h"><div><h2>GitHub öğrenci sitesi</h2><p>Her öğrencinin sonuçları kendi şifresiyle şifrelenir. Öğrenci ve velisi aynı kullanıcı adı ve şifreyle yalnızca kendi sonuçlarını görür.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
+  openModal(`<div class="m-h"><div><h2>GitHub öğrenci sitesi</h2><p>Her öğrencinin sonuçları kendi şifresiyle şifrelenir. Öğrenci ve velisi aynı kullanıcı adı ve şifreyle yalnızca kendi sonuçlarını görür. Sen yönetici girişiyle bütün öğrencileri görürsün.</p></div><button class="icon-btn" data-act="close" aria-label="Kapat">✕</button></div>
     <div class="m-b"><div class="fld"><label for="gh_site">Site adresi</label><input id="gh_site" value="${esc(site)}"></div>
-      <div style="display:flex;flex-direction:column;gap:8px">${rows}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${admRow}${rows}</div>
       <ol class="steps"><li>Siteye dahil etmek istediğin öğrencileri işaretle; kullanıcı adı ve şifre kendiliğinden oluşur.</li><li><b>data.json indir</b>'e bas.</li><li>GitHub'da <b>net-atlasi</b> reposunu aç, <b>Add file → Upload files</b> ile bu dosyayı yükle (eskisinin yerine geçer) ve <b>Commit changes</b>'e bas. Bir iki dakika içinde site güncellenir.</li><li>Yeni deneme girdiğinde 2. ve 3. adımı tekrarla.</li></ol>
       <p class="err" id="gh_err" hidden></p></div>
     <div class="m-f"><span class="sum" id="gh_sum">${studentsSorted().filter(s=>s.gh?.on).length} öğrenci dahil</span><button class="btn quiet" data-act="close">Kapat</button><button class="btn primary" id="gh_dl">data.json indir</button></div>`);
   $("#gh_site").addEventListener("change",e=>ls.set("na-site",e.target.value.trim()||SITE_DEFAULT));
   document.querySelectorAll("[data-ghon]").forEach(cb=>cb.addEventListener("change",async()=>{const s=S.students.get(cb.dataset.ghon);let g=s.gh?{...s.gh}:null;
-    if(cb.checked&&!g){const taken=new Set([...S.students.values()].map(x=>x.gh?.user).filter(Boolean));let u=slugify(s.name),n=2;while(taken.has(u))u=slugify(s.name)+"-"+n++;g={user:u,pass:newPass()}}
+    if(cb.checked&&!g){const taken=new Set([...S.students.values()].map(x=>x.gh?.user).concat(adminCred()?.user).filter(Boolean));let u=slugify(s.name),n=2;while(taken.has(u))u=slugify(s.name)+"-"+n++;g={user:u,pass:newPass()}}
     if(g){g.on=cb.checked;try{await setGh(s,g)}catch{}}githubModal()}));
   document.querySelectorAll("[data-ghnew]").forEach(b=>b.addEventListener("click",async()=>{const s=S.students.get(b.dataset.ghnew);try{await setGh(s,{...s.gh,pass:newPass()})}catch{}githubModal();toast("Yeni şifre oluştu. data.json'u yeniden yüklemeyi unutma.")}));
   document.querySelectorAll("[data-ghcopy]").forEach(b=>b.addEventListener("click",()=>{const s=S.students.get(b.dataset.ghcopy);const t=credText(s,$("#gh_site").value.trim()||SITE_DEFAULT);navigator.clipboard?.writeText(t).then(()=>toast("Giriş bilgileri kopyalandı.")).catch(()=>toast(t.replace(/\n/g," · ")))}));
+  document.querySelector("[data-admcopy]")?.addEventListener("click",()=>{const c=adminCred();const t=`Net Atlası yönetici girişi\n${$("#gh_site").value.trim()||SITE_DEFAULT}\nKullanıcı adı: ${c.user}\nŞifre: ${c.pass}`;navigator.clipboard?.writeText(t).then(()=>toast("Yönetici giriş bilgileri kopyalandı.")).catch(()=>toast(t.replace(/\n/g," · ")))});
+  document.querySelector("[data-admnew]")?.addEventListener("click",async()=>{try{await setAdminCred({...adminCred(),pass:newPass()})}catch{}githubModal();toast("Yönetici şifren değişti. data.json'u yeniden yüklemeyi unutma.")});
   $("#gh_dl").addEventListener("click",async()=>{const inc=studentsSorted().filter(s=>s.gh?.on&&s.gh.user&&s.gh.pass);const err=$("#gh_err");
     if(!inc.length){err.textContent="Önce en az bir öğrenciyi işaretle.";err.hidden=false;return}
     $("#gh_dl").disabled=true;$("#gh_dl").textContent="Şifreleniyor…";
     try{const entries={};for(const s of inc){const p=portalPayload(s,"Öğrenci");entries[await entryKey(s.gh.user)]=await sealEntry({...p,updated:new Date().toISOString()},s.gh.pass)}
-      await saveFile("data.json",JSON.stringify({app:"net-atlasi",v:1,updated:new Date().toISOString(),entries}))}
+      const ac=adminCred();let admin=null;if(ac?.user&&ac?.pass)admin={k:await entryKey(ac.user),...await sealEntry({students:[...S.students.values()],exams:[...S.exams.values()],keys:[...S.keys.values()],updated:new Date().toISOString()},ac.pass)};
+      await saveFile("data.json",JSON.stringify({app:"net-atlasi",v:1,updated:new Date().toISOString(),entries,...(admin?{admin}:{})}))}
     catch(e){err.textContent="Dosya hazırlanamadı. Sayfayı yenileyip tekrar dene.";err.hidden=false}
     $("#gh_dl").disabled=false;$("#gh_dl").textContent="data.json indir"})}
 let SITE_DATA=null;
@@ -656,8 +667,13 @@ async function bootStatic(){
   try{const r=await fetch("data.json",{cache:"no-store"});SITE_DATA=await r.json()}catch{SITE_DATA=null}
   render();
   const saved=ls.get("na-login",null);if(saved&&SITE_DATA)tryLogin(saved.u,saved.p,saved.who,true)}
+function enterAdmin(data){ADMIN=true;ROLE="teacher";document.body.classList.remove("ro");document.body.classList.add("adm");
+  S.students=new Map((data.students||[]).map(x=>[x.id,x]));S.exams=new Map((data.exams||[]).map(x=>[x.id,x]));S.keys=new Map((data.keys||[]).map(x=>[x.id,x]));S.keyMeta=[];S.keyFull={};S.cls=[];
+  if(!S.students.has(UI.sid))UI.sid=studentsSorted()[0]?.id||null;const s=S.students.get(UI.sid);if(s)fitType(s);
+  S.mode="db";$("#saveTitle").textContent="Yönetici görünümü";$("#saveText").textContent=`Salt okunur · son güncelleme: ${new Date(data.updated||SITE_DATA.updated).toLocaleDateString("tr-TR",{day:"numeric",month:"long"})}`;render()}
 async function tryLogin(u,p,who,silent){const err=$("#lg_err");
-  try{const e=SITE_DATA?.entries?.[await entryKey(u)];if(!e)throw 0;const data=await openEntry(e,p);
+  try{const ek=await entryKey(u);const A=SITE_DATA?.admin;if(A&&A.k===ek){let data=null;try{data=await openEntry(A,p)}catch{}if(data){if($("#lg_rem")?.checked||silent)ls.set("na-login",{u,p,who});enterAdmin(data);return}}
+    const e=SITE_DATA?.entries?.[ek];if(!e)throw 0;const data=await openEntry(e,p);
     WHO=who==="Veli"?"Veli":"Öğrenci";const st=data.student;S.students=new Map([[st.id,{...st}]]);S.exams=new Map((data.exams||[]).map(x=>[x.id,{...x,studentId:st.id}]));S.keyMeta=data.keys||[];S.keyFull=data.kfull||{};S.cls=data.cls||[];
     UI.sid=st.id;fitType(st);S.mode="db";$("#saveText").textContent=`Son güncelleme: ${new Date(data.updated||SITE_DATA.updated).toLocaleDateString("tr-TR",{day:"numeric",month:"long"})}`;
     if($("#lg_rem")?.checked||silent)ls.set("na-login",{u,p,who});render()}
@@ -718,7 +734,7 @@ function viewOverview(){
   <div class="typebar">${typeBar(UI.type,"data-type",typesOf(s))}<span class="hint">${T.label} sonuçları · varsayılan ${DIV_LABEL[T.div]}${otherTypes.length?` · ${otherTypes.map(t=>`<button class="linkish" data-type="${t}">${t}: ${examsOf(s.id,t).length} kayıt</button>`).join(", ")}`:""}</span></div>
   <div class="card pad student-bar"><span class="av">${esc(initials(s.name))}</span>
     <div class="who"><div class="n">${esc(s.name)}<button class="icon-btn teach" data-act="edit-student" data-id="${s.id}" aria-label="Öğrenciyi düzenle">${ICON.edit}</button></div>
-    <div class="s">${ro?`<span>${esc(s.level||"Öğrenci")}</span>`:`<button class="linkish" data-act="edit-student" data-id="${s.id}">${s.level?esc(s.level):"Sınıf bilgisi ekle"}</button>`}<span>·</span><span>${TRACKS[trackOf(s)].label}</span><span>·</span><span>${list.length} ${T.label} deneme kaydı</span>${s.note&&!ro?`<span>·</span><span>${esc(s.note)}</span>`:""}</div></div>
+    <div class="s">${ro||ADMIN?`<span>${esc(s.level||"Öğrenci")}</span>`:`<button class="linkish" data-act="edit-student" data-id="${s.id}">${s.level?esc(s.level):"Sınıf bilgisi ekle"}</button>`}<span>·</span><span>${TRACKS[trackOf(s)].label}</span><span>·</span><span>${list.length} ${T.label} deneme kaydı</span>${s.note&&!ro?`<span>·</span><span>${esc(s.note)}</span>`:""}</div></div>
     ${ro&&target?`<span class="badge">${ICON.target}Hedef: ${fmt(target)} net</span>`:""}
     <button class="btn sm" data-act="karne"><svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Excel karnesi</button>
     <button class="btn sm teach" data-act="access">${codesOf(s).length?`<span class="badge on" style="padding:0 6px">● ${codesOf(s).length}</span>Öğrenci ve veli erişimi`:"Öğrenci ve veli erişimi"}</button>
@@ -1304,6 +1320,7 @@ document.addEventListener("click",e=>{
   if(b.dataset.ksub){UI.ksub=b.dataset.ksub;render();return}
   if(b.dataset.series){UI.series[b.dataset.series]=!UI.series[b.dataset.series];if(!Object.values(UI.series).some(Boolean))UI.series.total=true;render();return}
   if(b.dataset.dyn){UI.dyn=b.dataset.dyn==="1";render();return}
+  if(ADMIN&&WR_ACTS.has(b.dataset.act)){toast(RO_MSG);return}
   const id=b.dataset.id;
   switch(b.dataset.act){
     case "add-exam":return examModal(null);
@@ -1327,7 +1344,7 @@ document.addEventListener("click",e=>{
     case "import":return importModal();
     case "karne":$("#dataMenu").hidden=true;return exportKarne();
     case "github":$("#dataMenu").hidden=true;return githubModal();
-    case "logout":ls.set("na-login",null);S.mode="login";S.students.clear();S.exams.clear();render();return;
+    case "logout":ls.set("na-login",null);if(ADMIN){ADMIN=false;ROLE="student";document.body.classList.remove("adm");document.body.classList.add("ro");S.keys.clear()}S.mode="login";S.students.clear();S.exams.clear();render();return;
     case "submit-exam":return examModal(null,"submit");
     case "close":return closeModal();
     case "csv":$("#dataMenu").hidden=true;return exportCSV();
